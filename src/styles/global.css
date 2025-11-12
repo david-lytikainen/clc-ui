@@ -1,0 +1,31 @@
+/* Global Styles */
+
+* {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 600px) {
+  * {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+html {
+  /* Background color - matches theme.ts (Base color: #EFEBD8) */
+  background-color: #EFEBD8;
+  height: 100%;
+}
+
+body {
+  /* Background color - matches theme.ts (Base color: #EFEBD8) */
+  background-color: #EFEBD8;
+  height: 100%;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+@media (min-width: 600px) {
+  body {
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+}
+
