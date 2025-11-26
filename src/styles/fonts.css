@@ -1,7 +1,9 @@
 /* Font Imports */
 
+/* TODO: Uncomment these when you add the font files to src/styles/fonts/ directory */
+
 /* Tenure BC */
-@font-face {
+/* @font-face {
   font-family: 'Tenure BC';
   src: url('./fonts/TenureBC-Regular.woff2') format('woff2'),
        url('./fonts/TenureBC-Regular.woff') format('woff');
@@ -17,10 +19,10 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 /* Averia GWF */
-@font-face {
+/* @font-face {
   font-family: 'Averia GWF';
   src: url('./fonts/AveriaGWF-Regular.woff2') format('woff2'),
        url('./fonts/AveriaGWF-Regular.woff') format('woff');
@@ -36,8 +38,9 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-}
+} */
 
 /* Note: Place your font files in src/styles/fonts/ directory */
 /* If fonts are hosted elsewhere, update the src URLs above */
+/* Once fonts are added, uncomment the @font-face declarations above */
 
