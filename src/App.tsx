@@ -9,8 +9,12 @@ import './styles/global.css';
 import { theme } from './styles/theme';
 import { colors } from './styles/colors';
 import Layout from './components/layout/Layout';
+import ShopAll from './pages/ShopAll';
+import { useAuth } from './context/AuthContext';
 
 function App() {
+  const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
+  
   // Automatically set all colors from colors.ts as CSS variables
   // This way global.css can use any color without manual updates
   useEffect(() => {
@@ -57,10 +61,12 @@ function App() {
               element={
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                   <h1>Cinnamon Leather Co</h1>
-                  <p>Project setup complete! Start building your UI.</p>
+                  hi {user?.first_name || 'silly silly'}!
+                  you are {isAdmin() ? 'an admin' : 'so silly'}.
                 </Box>
               } 
             />
+            <Route path="/shop" element={<ShopAll />} />
           </Routes>
         </Layout>
       </Router>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, IconButton, Tabs, Tab } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, IconButton, Tabs, Tab, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@mui/material/styles';
 import { colors } from '../styles/colors';
+import { createAccount } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface SignInModalProps {
   open: boolean;
@@ -11,6 +13,7 @@ interface SignInModalProps {
 
 const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
+  const auth = useAuth();
   const [activeTab, setActiveTab] = useState(0); // 0 = Sign In, 1 = Create Account
   
   // Sign In form state
@@ -23,10 +26,12 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-    // Clear all form fields when switching tabs
     clearAllFields();
   };
 
@@ -38,38 +43,58 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
     setSignUpEmail('');
     setSignUpPassword('');
     setConfirmPassword('');
+    setErrorMessage('');
+    setLoading(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (activeTab === 0) {
-      // Sign In
-      // TODO: Implement sign-in logic
-      console.log('Sign in:', { email, password });
-      // After successful sign-in, close modal
-      // onClose();
+      setErrorMessage('');
+      setLoading(true);
+      auth.signIn(email, password).then(() => handleClose())
+        .catch((err: any) => {
+          console.error('Sign in failed', err);
+          const msg = err?.response?.data?.error || err?.message || 'Failed to sign in';
+          setErrorMessage(msg);
+        })
+        .finally(() => setLoading(false));
+
     } else {
-      // Create Account
-      // TODO: Validate passwords match
       if (signUpPassword !== confirmPassword) {
-        console.error('Passwords do not match');
+        setErrorMessage('Passwords do not match');
         return;
       }
-      // TODO: Implement sign-up logic
-      console.log('Create account:', { 
-        firstName, 
-        lastName, 
-        email: signUpEmail, 
-        password: signUpPassword 
-      });
-      // After successful sign-up, close modal
-      // onClose();
+
+      setErrorMessage('');
+      setLoading(true);
+      createAccount({
+        first_name: firstName,
+        last_name: lastName,
+        email: signUpEmail,
+        password: signUpPassword,
+      })
+        .then((res) => {
+          if (res?.user) {
+            auth.setUserFromPayload(res.user);
+            handleClose();
+          } else {
+            console.warn('createAccount succeeded but no user returned');
+            handleClose();
+          }
+        })
+        .catch((err: any) => {
+          console.error('Create account failed', err);
+          const msg = err?.response?.data?.error || err?.message || 'Failed to create account';
+          setErrorMessage(msg);
+        })
+        .finally(() => setLoading(false));
     }
   };
 
   const handleClose = () => {
     clearAllFields();
-    setActiveTab(0); // Reset to Sign In tab
+    setActiveTab(0);
     onClose();
   };
 
@@ -253,6 +278,12 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
           </Box>
         </DialogContent>
 
+        {errorMessage && (
+          <Box sx={{ px: 3 }}>
+            <Typography color="error">{errorMessage}</Typography>
+          </Box>
+        )}
+
         <DialogActions sx={{ px: 3, pb: 3, pt: 2 }}>
           <Button
             onClick={handleClose}
@@ -266,6 +297,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
           <Button
             type="submit"
             variant="contained"
+            disabled={loading}
             sx={{
               backgroundColor: theme.palette.primary.main,
               color: colors.background.white,
@@ -275,7 +307,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
               },
             }}
           >
-            {activeTab === 0 ? 'Sign In' : 'Create Account'}
+            {activeTab === 0 ? 'Sign In' : (loading ? 'Creating...' : 'Create Account')}
           </Button>
         </DialogActions>
       </form>

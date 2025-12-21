@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Box, Button, IconButton, Typography } from '@mui/material';
+import { AppBar, Toolbar, Box, Button, IconButton, Typography, Tooltip } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useTheme } from '@mui/material/styles';
 import SignInModal from '../SignInModal';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const { user, isAuthenticated, signOut } = useAuth();
 
   const navLinks = [
     { label: 'SHOP ALL', path: '/shop' },
     { label: 'LEATHER BAGS', path: '/leather-bags' },
     { label: 'WALLETS', path: '/wallets' },
     { label: 'ACCESSORIES', path: '/accessories' },
+    { label: 'GIFT CARDS', path: '/gift-cards' },
     { label: 'ABOUT', path: '/about' },
   ];
 
@@ -33,7 +36,6 @@ const Navbar: React.FC = () => {
         py: 2,
         minHeight: 'auto',
       }}>
-        {/* Logo Section - Centered at top */}
         <Box 
           component={Link}
           to="/"
@@ -75,7 +77,7 @@ const Navbar: React.FC = () => {
             maxWidth: '1200px',
           }}
         >
-          {/* Navigation Links */}
+          {/* All tabs */}
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             {navLinks.map((link) => (
               <Button
@@ -99,9 +101,29 @@ const Navbar: React.FC = () => {
             ))}
           </Box>
 
-          {/* User Actions - Top Right */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Button
+          {/* User actions */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
+            {isAuthenticated ? (
+            <Tooltip title="Sign out">
+              <Button
+                onClick={() => signOut()}
+                sx={{
+                  color: theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.05em',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    color: theme.palette.primary.main,
+                  },
+                }}
+              >
+                Hi, {user?.first_name || 'User'}
+              </Button>
+            </Tooltip>
+            ) :
+            (<Button
               onClick={() => setSignInModalOpen(true)}
               sx={{
                 color: theme.palette.text.primary,
@@ -116,7 +138,9 @@ const Navbar: React.FC = () => {
               }}
             >
               SIGN IN
-            </Button>
+            </Button>)}
+            
+
             <IconButton
               onClick={() => navigate('/cart')}
               sx={{
