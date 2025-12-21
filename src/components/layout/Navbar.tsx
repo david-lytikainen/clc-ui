@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Box, Button, IconButton, Typography, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, Box, Button, IconButton, Tooltip } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useTheme } from '@mui/material/styles';
 import SignInModal from '../SignInModal';
 import { useAuth } from '../../context/AuthContext';
+import { ReactComponent as LargeNameTranspLogo } from '../../assets/LargeNameTranspLogo.svg';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
@@ -33,7 +34,6 @@ const Navbar: React.FC = () => {
       <Toolbar sx={{ 
         display: 'flex', 
         flexDirection: 'column',
-        py: 2,
         minHeight: 'auto',
       }}>
         <Box 
@@ -44,27 +44,11 @@ const Navbar: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             textDecoration: 'none',
-            mb: 2,
             cursor: 'pointer',
+            py: 1,
           }}
         >
-          {/* TODO: Add wheat illustration/icon here */}
-          <Typography
-            variant="h4"
-            component="div"
-            sx={{
-              fontFamily: theme.typography.fontFamily,
-              color: theme.palette.primary.main,
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-            }}
-          >
-            ELS
-          </Typography>
-          {/* Placeholder for wheat illustration */}
-          <Box sx={{ mt: 0.5, fontSize: '0.8rem', color: theme.palette.text.secondary }}>
-            {/* Wheat icon will go here */}
-          </Box>
+          <LargeNameTranspLogo style={{ width: 250, height: 'auto' }} />
         </Box>
 
 

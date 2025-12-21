@@ -7,7 +7,7 @@ type ProductCardProps = {
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
-  const imageUrl = product?.images?.[0]?.s3_key || '';
+  const imageUrl = product?.imageUrl;
 
   return (
     <Card>
