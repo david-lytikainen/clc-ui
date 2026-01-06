@@ -26,7 +26,7 @@ export const colors = {
   // Background Colors
   background: {
     default: '#EFEBD8',   // Base - warm beige background
-    base2: '#F1E3A4',     // Base2 - light cream (alternative name)
+    base2: '#fcf8e5',     // Base2 - lighter version
     white: '#FFFFFF',     // Pure white option
   },
   

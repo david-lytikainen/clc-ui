@@ -11,11 +11,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
-      <Box 
-        component="main" 
+      <Box
+        component="main"
         sx={{
           flexGrow: 1,
           width: '100%',
+          bgcolor: 'background.paper',
         }}
       >
         {children}

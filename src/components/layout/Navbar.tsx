@@ -51,18 +51,14 @@ const Navbar: React.FC = () => {
           <LargeNameTranspLogo style={{ width: 250, height: 'auto' }} />
         </Box>
 
-
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between',
+        {/* All tabs */}
+        <Box
+          sx={{
+            display: 'flex',
             alignItems: 'center',
-            width: '100%',
-            maxWidth: '1200px',
           }}
         >
-          {/* All tabs */}
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
             {navLinks.map((link) => (
               <Button
                 key={link.path}
@@ -76,7 +72,7 @@ const Navbar: React.FC = () => {
                   letterSpacing: '0.05em',
                   '&:hover': {
                     backgroundColor: 'transparent',
-                    color: theme.palette.primary.main,
+                    color: theme.palette.secondary.main,
                   },
                 }}
               >
@@ -84,31 +80,14 @@ const Navbar: React.FC = () => {
               </Button>
             ))}
           </Box>
+        </Box>
 
-          {/* User actions */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
-            {isAuthenticated ? (
-            <Tooltip title="Sign out">
-              <Button
-                onClick={() => signOut()}
-                sx={{
-                  color: theme.palette.text.primary,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.9rem',
-                  letterSpacing: '0.05em',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                    color: theme.palette.primary.main,
-                  },
-                }}
-              >
-                Hi, {user?.first_name || 'User'}
-              </Button>
-            </Tooltip>
-            ) :
-            (<Button
-              onClick={() => setSignInModalOpen(true)}
+        {/* User actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
+          {isAuthenticated ? (
+          <Tooltip title="Sign out" placement='bottom'>
+            <Button
+              onClick={() => signOut()}
               sx={{
                 color: theme.palette.text.primary,
                 textTransform: 'none',
@@ -117,28 +96,44 @@ const Navbar: React.FC = () => {
                 letterSpacing: '0.05em',
                 '&:hover': {
                   backgroundColor: 'transparent',
-                  color: theme.palette.primary.main,
+                  color: theme.palette.secondary.main,
                 },
               }}
             >
-              SIGN IN
-            </Button>)}
-            
-
-            <IconButton
-              onClick={() => navigate('/cart')}
-              sx={{
-                color: theme.palette.text.primary,
-                '&:hover': {
-                  color: theme.palette.primary.main,
-                  backgroundColor: 'transparent',
-                },
-              }}
-            >
-              <ShoppingCartIcon />
-            </IconButton>
-          </Box>
+              Hi, {user?.first_name || 'User'}
+            </Button>
+          </Tooltip>
+          ) :
+          (<Button
+            onClick={() => setSignInModalOpen(true)}
+            sx={{
+              color: theme.palette.text.primary,
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.9rem',
+              letterSpacing: '0.05em',
+              '&:hover': {
+                backgroundColor: 'transparent',
+                color: theme.palette.secondary.main,
+              },
+            }}
+          >
+            SIGN IN
+          </Button>)}
+          <IconButton
+            onClick={() => navigate('/cart')}
+            sx={{
+              color: theme.palette.text.primary,
+              '&:hover': {
+                color: theme.palette.secondary.main,
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
+            <ShoppingCartIcon />
+          </IconButton>
         </Box>
+
       </Toolbar>
       <SignInModal 
         open={signInModalOpen} 

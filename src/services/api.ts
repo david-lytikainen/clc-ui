@@ -43,6 +43,24 @@ export interface CreateAccount {
   password: string;
 }
 
+export interface ProductType {
+  id: number;
+  name: string;
+}
+
+export interface ProductCard {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  product_type_id: number;
+  dimensions: string;
+  color: string;
+  note_of_cinnamon: string;
+  created_at: string;
+  image_url : string;
+}
+
 interface AuthResponse {
   token: string;
   user: {
@@ -73,5 +91,10 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
 
 export const getProducts = async (): Promise<any[]> => {
   const response = await api.get('/products');
+  return response.data;
+};
+
+export const getProductTypes = async (): Promise<ProductType[]> => {
+  const response = await api.get<ProductType[]>('/product-types');
   return response.data;
 };

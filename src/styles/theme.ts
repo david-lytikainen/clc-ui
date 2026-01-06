@@ -18,7 +18,10 @@ export const theme = createTheme({
     },
     background: { // base
       default: colors.background.default,
-      paper: colors.background.base2, // base2
+      paper: colors.background.base2, // base2,
+    },
+    common: {
+      white: colors.background.white,
     },
     // Add accent color to palette
     info: { // accent

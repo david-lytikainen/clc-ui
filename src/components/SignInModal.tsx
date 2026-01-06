@@ -107,7 +107,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
       PaperProps={{
         sx: {
           borderRadius: 2,
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: theme.palette.common.white,
         },
       }}
     >
@@ -124,7 +124,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
           sx={{
             flex: 1,
             '& .MuiTabs-indicator': {
-              backgroundColor: theme.palette.primary.main,
+              backgroundColor: theme.palette.background.default,
             },
           }}
         >
