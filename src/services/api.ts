@@ -89,6 +89,18 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
   return response.data;
 };
 
+export const getCurrentUser = async (): Promise<{
+  id: number;
+  role_id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  created_at?: string;
+}> => {
+  const response = await api.get('/me');
+  return response.data;
+};
+
 export const getProducts = async (): Promise<any[]> => {
   const response = await api.get('/products');
   return response.data;

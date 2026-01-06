@@ -1,6 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { signIn as apiSignIn } from '../services/api';
+import { signIn as apiSignIn, getCurrentUser } from '../services/api';
 
 export type User = {
   id: number;
@@ -50,6 +50,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setUserFromPayload = (u: User | null) => {
     setUser(u);
   };
+
+  // On mount, if there's a token, validate it by calling the backend
+  useEffect(() => {
+    const bootstrap = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+      setLoading(true);
+      try {
+        const u = await getCurrentUser();
+        setUser(u);
+      } catch (e) {
+        // token invalid or request failed; clear token and user
+        try {
+          localStorage.removeItem('authToken');
+        } catch (er) {
+          // noop
+        }
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    bootstrap();
+  }, []);
 
   const isAdmin = () => {
     if (!user) return false;
