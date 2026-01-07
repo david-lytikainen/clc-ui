@@ -6,9 +6,9 @@ import ProductCreateDialog from '../components/ProductCreateDialog';
 import useProducts from '../hooks/useProducts';
 import { useAuth } from '../context/AuthContext';
 
-const ShopAll: React.FC = () => {
+const Wallets: React.FC = () => {
   const { isAdmin } = useAuth();
-  const { products, setProducts, loading } = useProducts('all');
+  const { products, setProducts, loading } = useProducts('Wallet');
   const [createOpen, setCreateOpen] = useState(false);
 
   const openCreate = () => setCreateOpen(true);
@@ -17,7 +17,7 @@ const ShopAll: React.FC = () => {
   return (
     <Box sx={{ backgroundColor: 'background.paper' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 3 }}>
-        <Typography variant="h4">Shop All</Typography>
+        <Typography variant="h4">Wallets</Typography>
         {isAdmin() && (
           <Tooltip title="Create product" placement='left'>
             <IconButton color="primary" onClick={openCreate} aria-label="create-product">
@@ -44,4 +44,4 @@ const ShopAll: React.FC = () => {
   );
 };
 
-export default ShopAll;
+export default Wallets;

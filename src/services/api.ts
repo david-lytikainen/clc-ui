@@ -101,8 +101,8 @@ export const getCurrentUser = async (): Promise<{
   return response.data;
 };
 
-export const getProducts = async (): Promise<any[]> => {
-  const response = await api.get('/products');
+export const getProducts = async (productType: string): Promise<any[]> => {
+  const response = await api.get(`/products/${productType}`);
   return response.data;
 };
 

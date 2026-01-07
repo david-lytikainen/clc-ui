@@ -11,6 +11,9 @@ import { colors } from './styles/colors';
 import Layout from './components/layout/Layout';
 import ShopAll from './pages/ShopAll';
 import { useAuth } from './context/AuthContext';
+import LeatherBags from './pages/LeatherBags';
+import Wallets from './pages/Wallets';
+import Accessories from './pages/Accessories';
 
 function App() {
   const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
@@ -67,6 +70,9 @@ function App() {
               } 
             />
             <Route path="/shop" element={<ShopAll />} />
+            <Route path="/leather-bags" element={<LeatherBags />} />
+            <Route path="/wallets" element={<Wallets />} />
+            <Route path="/accessories" element={<Accessories />} />
           </Routes>
         </Layout>
       </Router>
