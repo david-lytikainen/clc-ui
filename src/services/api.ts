@@ -56,7 +56,6 @@ export interface ProductCard {
   product_type_id: number;
   dimensions: string;
   color: string;
-  note_of_cinnamon: string;
   created_at: string;
   image_url : string;
 }
@@ -108,5 +107,22 @@ export const getProducts = async (productType: string): Promise<any[]> => {
 
 export const getProductTypes = async (): Promise<ProductType[]> => {
   const response = await api.get<ProductType[]>('/product-types');
+  return response.data;
+};
+
+export interface ProductWithImages {
+  id: number;
+  product_type_id: number;
+  title: string;
+  description: string;
+  price: number;
+  dimensions: string;
+  color: string;
+  created_at: string;
+  image_urls: string[];
+}
+
+export const getProductById = async (productId: number): Promise<ProductWithImages> => {
+  const response = await api.get(`/product/${productId}`);
   return response.data;
 };

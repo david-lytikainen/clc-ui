@@ -38,7 +38,7 @@ const Navbar: React.FC = () => {
       }}>
         <Box 
           component={Link}
-          to="/"
+          to="/shop"
           sx={{ 
             display: 'flex',
             flexDirection: 'column',

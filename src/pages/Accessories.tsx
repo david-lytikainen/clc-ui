@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Typography, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ProductCard from '../components/ProductCard';
@@ -9,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 const Accessories: React.FC = () => {
   const { isAdmin } = useAuth();
   const { products, setProducts, loading } = useProducts('Accessory');
+  const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
 
   const openCreate = () => setCreateOpen(true);
@@ -30,7 +32,7 @@ const Accessories: React.FC = () => {
       <Grid container>
         {products.map((p) => (
           <Grid key={p.id} item xs={12} sm={6} md={4} lg={3}>
-            <ProductCard product={p} />
+            <ProductCard product={p} onClick={() => navigate(`/product/${p.id}`)} />
           </Grid>
         ))}
       </Grid>

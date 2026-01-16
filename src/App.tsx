@@ -14,6 +14,7 @@ import { useAuth } from './context/AuthContext';
 import LeatherBags from './pages/LeatherBags';
 import Wallets from './pages/Wallets';
 import Accessories from './pages/Accessories';
+import ProductDetail from './pages/ProductDetail';
 
 function App() {
   const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
@@ -59,20 +60,11 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route 
-              path="/" 
-              element={
-                <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <h1>Cinnamon Leather Co</h1>
-                  hi {user?.first_name || 'silly silly'}!
-                  you are {isAdmin() ? 'an admin' : 'so silly'}.
-                </Box>
-              } 
-            />
             <Route path="/shop" element={<ShopAll />} />
             <Route path="/leather-bags" element={<LeatherBags />} />
             <Route path="/wallets" element={<Wallets />} />
             <Route path="/accessories" element={<Accessories />} />
+            <Route path="/product/:productId" element={<ProductDetail />} />
           </Routes>
         </Layout>
       </Router>

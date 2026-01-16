@@ -18,7 +18,6 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     product_type_id: '',
     dimensions: '',
     color: '',
-    note_of_cinnamon: '',
   });
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
@@ -49,7 +48,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
   };
 
   const handleCreateSubmit = async () => {
-    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions || !form.color || !form.note_of_cinnamon) return alert('Please provide all required fields');
+    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions || !form.color) return alert('Please provide all required fields');
     setCreating(true);
     try {
       const fd = new FormData();
@@ -60,7 +59,6 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       fd.append('product_type_id', String(form.product_type_id || '1'));
       fd.append('dimensions', form.dimensions);
       fd.append('color', form.color);
-      fd.append('note_of_cinnamon', form.note_of_cinnamon);
       formFiles.forEach((f) => fd.append('images', f));
 
       const res = await fetch('/api/products/create', { method: 'POST', body: fd });
@@ -68,7 +66,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
         const created = await res.json();
         onCreated && onCreated(created);
         onClose();
-        setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '', color: '', note_of_cinnamon: '' });
+        setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '', color: '' });
         setFormFiles([]);
       } else {
         console.error('Failed to create product', await res.text());
@@ -116,7 +114,6 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
           </FormControl>
           <TextField label="Dimensions" value={form.dimensions} onChange={handleFormChange('dimensions')} fullWidth />
           <TextField label="Color" value={form.color} onChange={handleFormChange('color')} fullWidth />
-          <TextField label="Note Of Cinnamon" value={form.note_of_cinnamon} onChange={handleFormChange('note_of_cinnamon')} fullWidth />
           <input type="file" multiple accept="image/*" onChange={handleFilesChange} />
         </Stack>
       </DialogContent>
