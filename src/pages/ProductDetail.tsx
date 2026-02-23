@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, CardMedia, CircularProgress, Grid, Paper, Typography } from '@mui/material';
-import { getProductById, ProductWithImages } from '../services/api';
+import { Box, Button, CardMedia, CircularProgress, Grid, Paper, Typography, useTheme } from '@mui/material';
+import { getProductById, ProductWithImages, createCheckoutSession } from '../services/api';
+import { colors } from '../styles/colors';
 
 const ProductDetail: React.FC = () => {
+  const theme = useTheme();
   const { productId } = useParams();
   const [product, setProduct] = useState<ProductWithImages | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [creatingStripeCheckout, setCreatingStripeCheckout] = useState<boolean>(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -87,7 +90,7 @@ const ProductDetail: React.FC = () => {
             <CardMedia component="img" height="500" image={selectedImage || product.image_urls?.[0]} alt={product.title} />
           </Box>
         </Grid>
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={7}>
           <Box sx={{ p: 2 }}>
             <Typography variant="h6">{product.title}</Typography>
             <Typography variant="subtitle1" >{product.description}</Typography>
@@ -97,6 +100,53 @@ const ProductDetail: React.FC = () => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2"><strong>Dimensions:</strong> {product.dimensions}</Typography>
               <Typography variant="body2"><strong>Color:</strong> {product.color}</Typography>
+            </Box>
+            <Box sx={{ mt: 4 }}>
+              <Button type="submit" variant="contained"
+                size='large'
+                sx={{
+                  display: 'flex', flexDirection: 'column', height: '30px', width: '150px',
+                  backgroundColor: theme.palette.info.main, color: colors.background.white,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.info.dark,
+                  },
+                }}
+              >
+                Add to Cart
+              </Button>
+              <Button type="button" variant="contained"
+                sx={{
+                  mt: 1, display: 'flex', flexDirection: 'column', height: '30px', width: '150px',
+                  backgroundColor: theme.palette.primary.main, color: colors.background.white,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                onClick={async () => {
+                  if (!product || !product.stripe_price_id) {
+                    alert('No price configured for this product');
+                    return;
+                  }
+                  try {
+                    setCreatingStripeCheckout(true);
+                    const data = await createCheckoutSession(product.stripe_price_id, 1);
+                    if (data && data.url) window.location.href = data.url;
+                    else {
+                      console.error(data);
+                      alert((data && data.error) || 'Failed to create checkout session');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert('Network error');
+                  } finally {
+                    setCreatingStripeCheckout(false);
+                  }
+                }}
+              >
+                {creatingStripeCheckout ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : 'Buy Now'}
+              </Button>
             </Box>
           </Box>
         </Grid>

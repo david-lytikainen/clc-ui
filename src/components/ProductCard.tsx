@@ -12,35 +12,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
       <CardActionArea
         onClick={onClick}
         sx={{
-          cursor: onClick ? 'pointer' : 'default',
-          position: 'relative',
-          overflow: 'hidden',
-          '&:hover .card-info': {
-            transform: 'translateY(0%)',
-            opacity: 1,
-          },
+          cursor: onClick ? 'pointer' : 'default'
         }}
       >
         {product.image_url && (
-          <CardMedia component="img" height="320" image={product.image_url} alt={product.title} />
+          <CardMedia component="img" height="360" image={product.image_url} alt={product.title} />
         )}
 
         <CardContent
-          className="card-info"
           sx={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(255,255,255,0.9)',
-            transform: 'translateY(100%)',
-            transition: 'transform 0.18s ease, opacity 0.18s ease',
-            opacity: 0,
-            px: 2,
-            py: 1,
+            backgroundColor: 'secondary.light',
+            textAlign: 'center',
           }}
         >
-          <Typography variant="subtitle1" gutterBottom sx={{ mb: 0.5 }}>{product.title}</Typography>
+          <Typography variant="subtitle1" gutterBottom sx={{ mb: 0.2 }}>{product.title}</Typography>
           <Typography variant="body2" color="text.secondary">${product.price}</Typography>
         </CardContent>
       </CardActionArea>

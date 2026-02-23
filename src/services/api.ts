@@ -118,11 +118,24 @@ export interface ProductWithImages {
   price: number;
   dimensions: string;
   color: string;
+  stripe_price_id: string;
   created_at: string;
   image_urls: string[];
 }
 
 export const getProductById = async (productId: number): Promise<ProductWithImages> => {
   const response = await api.get(`/product/${productId}`);
+  return response.data;
+};
+
+export interface CheckoutSession {
+  id: string;
+  url: string;
+  price_id: string;
+  error?: string;
+}
+
+export const createCheckoutSession = async (priceId: string, quantity = 1): Promise<CheckoutSession> => {
+  const response = await api.post(`/create-checkout-session/${priceId}`, { quantity });
   return response.data;
 };
