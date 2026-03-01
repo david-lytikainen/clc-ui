@@ -139,3 +139,32 @@ export const createCheckoutSession = async (priceId: string, quantity = 1): Prom
   const response = await api.post(`/create-checkout-session/${priceId}`, { quantity });
   return response.data;
 };
+
+export const syncCart = async (items: any[]): Promise<any> => {
+  const response = await api.post('/sync-cart', { items });
+  return response.data;
+};
+
+export const getCart = async (): Promise<{ items: any[] }> => {
+  const response = await api.get('/cart');
+  return response.data;
+};
+
+export interface Order {
+  id: number;
+  user_id: number;
+  product_id: number;
+  session_id: string;
+  amount_cents: number;
+  quantity: number;
+  paid: boolean;
+  status: string;
+  created_at: string;
+  product_title: string;
+  image_url: string;
+}
+
+export const getOrders = async (): Promise<Order[]> => {
+  const response = await api.get<Order[]>('/orders');
+  return response.data;
+};

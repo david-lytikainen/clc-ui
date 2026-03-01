@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Grid, Typography, Tooltip, IconButton } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Box, Grid, Typography, Button } from '@mui/material';
 import ProductCard from '../components/ProductCard';
 import ProductCreateDialog from '../components/ProductCreateDialog';
 import useProducts from '../hooks/useProducts';
@@ -21,11 +20,14 @@ const Wallets: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 3 }}>
         <Typography variant="h4">Wallets</Typography>
         {isAdmin() && (
-          <Tooltip title="Create product" placement='left'>
-            <IconButton color="primary" onClick={openCreate} aria-label="create-product">
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={openCreate}
+            aria-label="create-product"
+          >
+            Create product
+          </Button>
         )}
       </Box>
       

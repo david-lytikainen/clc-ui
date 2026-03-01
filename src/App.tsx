@@ -15,6 +15,8 @@ import LeatherBags from './pages/LeatherBags';
 import Wallets from './pages/Wallets';
 import Accessories from './pages/Accessories';
 import ProductDetail from './pages/ProductDetail';
+import MyOrders from './pages/MyOrders';
+import Cart from './pages/Cart';
 
 function App() {
   const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
@@ -65,6 +67,8 @@ function App() {
             <Route path="/wallets" element={<Wallets />} />
             <Route path="/accessories" element={<Accessories />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
+            <Route path="/orders" element={<MyOrders />} />
+            <Route path="/cart" element={<Cart />} />
           </Routes>
         </Layout>
       </Router>

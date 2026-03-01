@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Button, CardMedia, CircularProgress, Grid, Paper, Typography, useTheme } from '@mui/material';
-import { getProductById, ProductWithImages, createCheckoutSession } from '../services/api';
+import { getProductById, ProductWithImages, createCheckoutSession, syncCart } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 
 const ProductDetail: React.FC = () => {
@@ -12,6 +13,8 @@ const ProductDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [creatingStripeCheckout, setCreatingStripeCheckout] = useState<boolean>(false);
+  const { isAuthenticated } = useAuth();
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -102,18 +105,47 @@ const ProductDetail: React.FC = () => {
               <Typography variant="body2"><strong>Color:</strong> {product.color}</Typography>
             </Box>
             <Box sx={{ mt: 4 }}>
-              <Button type="submit" variant="contained"
+              <Button type="button" variant="contained"
                 size='large'
-                sx={{
+                  onClick={async () => {
+                    if (adding) return;
+                    setAdding(true);
+                    try {
+                      const item = {
+                        id: product.id,
+                        product_id: product.id,
+                        product_title: product.title,
+                        image_url: product.image_urls?.[0] || null,
+                        quantity: 1,
+                        price_cents: Math.round(product.price * 100),
+                      };
+
+                      const raw = localStorage.getItem('cart');
+                      let cart: any = { items: [] };
+                      if (raw) {
+                        try { const parsed = JSON.parse(raw); cart.items = parsed.items || parsed || []; } catch (e) { cart.items = []; }
+                      }
+                      const existing = cart.items.find((i: any) => i.product_id === item.product_id);
+                      if (existing) existing.quantity = (existing.quantity || 0) + 1;
+                      else cart.items.unshift(item);
+                      localStorage.setItem('cart', JSON.stringify(cart));
+                      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: cart.items } }));
+
+                      if (isAuthenticated) {
+                        try { await syncCart(cart.items); } catch (e) { console.warn('Cart sync failed', e); }
+                      }
+                    } finally { setAdding(false); }
+                  }}
+                  sx={{
                   display: 'flex', flexDirection: 'column', height: '30px', width: '150px',
                   backgroundColor: theme.palette.info.main, color: colors.background.white,
                   textTransform: 'none',
                   '&:hover': {
                     backgroundColor: theme.palette.info.dark,
                   },
-                }}
+                  }}
               >
-                Add to Cart
+                  {adding ? 'Adding...' : 'Add to Cart'}
               </Button>
               <Button type="button" variant="contained"
                 sx={{

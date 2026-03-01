@@ -21,7 +21,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
         <CardContent
           sx={{
-            backgroundColor: 'secondary.light',
+            backgroundColor: 'background.default',
             textAlign: 'center',
           }}
         >

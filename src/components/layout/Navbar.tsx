@@ -1,18 +1,71 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Box, Button, IconButton, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, Box, Button, IconButton, Tooltip, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useTheme } from '@mui/material/styles';
 import SignInModal from '../SignInModal';
 import { useAuth } from '../../context/AuthContext';
 import { ReactComponent as LargeNameTranspLogo } from '../../assets/LargeNameTranspLogo.svg';
+import { syncCart, getCart } from '../../services/api';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
+  const [showSignOut, setShowSignOut] = useState(false);
+  const hoverTimers = React.useRef<number[]>([]);
   const { user, isAuthenticated, signOut } = useAuth();
+  const [cartCount, setCartCount] = useState(0);
 
+
+  React.useEffect(() => {
+    setUserMenuOpen(false);
+  }, [isAuthenticated]);
+
+  React.useEffect(() => {
+    const updateLocal = () => {
+      try {
+        const raw = localStorage.getItem('cart');
+        if (!raw) return setCartCount(0);
+        const parsed = JSON.parse(raw);
+        const items = parsed.items || parsed || [];
+        const total = items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0);
+        setCartCount(total);
+      } catch {
+        setCartCount(0);
+      }
+    };
+    updateLocal();
+    window.addEventListener('storage', updateLocal);
+
+    const handleCartUpdated = (e: any) => {
+      const total = e.detail.items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0);
+      setCartCount(total);
+    };
+    window.addEventListener('cartUpdated', handleCartUpdated);
+
+    // if user logged in, fetch server count
+    const fetchServer = async () => {
+      if (isAuthenticated) {
+        try {
+          const cart = await getCart();
+          const total = cart.items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0);
+          setCartCount(total);
+        } catch {
+          // ignore
+        }
+      }
+    };
+    fetchServer();
+
+    return () => {
+      window.removeEventListener('storage', updateLocal);
+      window.removeEventListener('cartUpdated', handleCartUpdated);
+    };
+  }, [isAuthenticated]);
   const navLinks = [
     { label: 'SHOP ALL', path: '/shop' },
     { label: 'LEATHER BAGS', path: '/leather-bags' },
@@ -85,24 +138,94 @@ const Navbar: React.FC = () => {
         {/* User actions */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
           {isAuthenticated ? (
-          <Tooltip title="Sign out" placement='bottom'>
-            <Button
-              onClick={() => signOut()}
-              sx={{
-                color: theme.palette.text.primary,
-                textTransform: 'none',
-                fontWeight: 500,
-                fontSize: '0.9rem',
-                letterSpacing: '0.05em',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  color: theme.palette.secondary.main,
-                },
+            <Box
+              sx={{ position: 'relative' }}
+              onMouseEnter={() => {
+                setUserMenuOpen(true);
+                setShowProfile(false); setShowOrders(false); setShowSignOut(false);
+                hoverTimers.current.forEach(t => window.clearTimeout(t)); hoverTimers.current = [];
+
+                hoverTimers.current.push(window.setTimeout(() => setShowProfile(true), 20));
+                hoverTimers.current.push(window.setTimeout(() => setShowOrders(true), 170));
+                hoverTimers.current.push(window.setTimeout(() => setShowSignOut(true), 320));
+              }}
+              onMouseLeave={() => {
+                setUserMenuOpen(false);
+                hoverTimers.current.forEach(t => window.clearTimeout(t)); hoverTimers.current = [];
+                setShowProfile(false); setShowOrders(false); setShowSignOut(false);
               }}
             >
-              Hi, {user?.first_name || 'User'}
-            </Button>
-          </Tooltip>
+              <Button
+                sx={{
+                  color: theme.palette.text.primary,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.05em',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    color: theme.palette.secondary.main,
+                  },
+                }}
+              >
+                Hi, {user?.first_name || 'User'}
+              </Button>
+              {userMenuOpen && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    bgcolor: 'transparent',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      bgcolor: 'transparent',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Box sx={{
+                        opacity: showProfile ? 1 : 0,
+                        transform: showProfile ? 'translateX(0)' : 'translateX(-10px)',
+                        transition: 'opacity 0.5s, transform 0.5s',
+                      }}>
+                      <Button
+                        onClick={() => navigate('/profile')}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                      >
+                        Profile
+                      </Button>
+                    </Box>
+                    <Box sx={{
+                        opacity: showOrders ? 1 : 0,
+                        transform: showOrders ? 'translateX(0)' : 'translateX(-10px)',
+                        transition: 'opacity 0.5s, transform 0.5s',
+                      }}>
+                      <Button
+                        onClick={() => navigate('/orders')}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                      >
+                        My Orders
+                      </Button>
+                    </Box>
+                    <Box sx={{
+                        opacity: showSignOut ? 1 : 0,
+                        transform: showSignOut ? 'translateX(0)' : 'translateX(-10px)',
+                        transition: 'opacity 0.5s, transform 0.5s',
+                      }}>
+                      <Button
+                        onClick={() => signOut()}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                      >
+                        Sign out
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+            </Box>
           ) :
           (<Button
             onClick={() => setSignInModalOpen(true)}
@@ -130,7 +253,9 @@ const Navbar: React.FC = () => {
               },
             }}
           >
-            <ShoppingCartIcon />
+            <Badge badgeContent={cartCount} color="primary">
+              <ShoppingCartIcon />
+            </Badge>
           </IconButton>
         </Box>
 
