@@ -94,6 +94,7 @@ export const getCurrentUser = async (): Promise<{
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string | null;
   created_at?: string;
 }> => {
   const response = await api.get('/me');
@@ -140,6 +141,11 @@ export const createCheckoutSession = async (priceId: string, quantity = 1): Prom
   return response.data;
 };
 
+export const createCartCheckoutSession = async (items: { product_id: number; quantity: number }[]): Promise<{ id: string; url: string }> => {
+  const response = await api.post('/create-cart-checkout-session', { items });
+  return response.data;
+};
+
 export const syncCart = async (items: any[]): Promise<any> => {
   const response = await api.post('/sync-cart', { items });
   return response.data;
@@ -155,6 +161,7 @@ export interface Order {
   user_id: number;
   product_id: number;
   session_id: string;
+  order_number?: string;
   amount_cents: number;
   quantity: number;
   paid: boolean;
@@ -162,9 +169,47 @@ export interface Order {
   created_at: string;
   product_title: string;
   image_url: string;
+  tracking_url?: string | null;
+  comments?: string[];  // notes as array from API
+  customer_email?: string | null;
 }
 
 export const getOrders = async (): Promise<Order[]> => {
   const response = await api.get<Order[]>('/orders');
+  return response.data;
+};
+
+export interface OrderDetailResponse {
+  order_number: string;
+  orders: Order[];
+}
+
+export const getOrderByNumber = async (orderNumber: string): Promise<OrderDetailResponse> => {
+  const response = await api.get<OrderDetailResponse>(`/orders/${orderNumber}`);
+  return response.data;
+};
+
+export interface AdminOrderListResponse {
+  orders_by_number: Record<string, Order[]>;
+  total: number;
+  page: number;
+  per_page: number;
+}
+
+export const getAdminOrders = async (page = 1, perPage = 10): Promise<AdminOrderListResponse> => {
+  const response = await api.get<AdminOrderListResponse>('/admin/orders', { params: { page, per_page: perPage } });
+  return response.data;
+};
+
+export const getAdminOrderByNumber = async (orderNumber: string): Promise<OrderDetailResponse> => {
+  const response = await api.get<OrderDetailResponse>(`/admin/orders/${orderNumber}`);
+  return response.data;
+};
+
+export const updateAdminOrder = async (
+  orderNumber: string,
+  data: { status?: string; tracking_url?: string; comments?: string[] }
+): Promise<OrderDetailResponse> => {
+  const response = await api.patch<OrderDetailResponse>(`/admin/orders/${orderNumber}`, data);
   return response.data;
 };

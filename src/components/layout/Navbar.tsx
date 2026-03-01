@@ -15,9 +15,10 @@ const Navbar: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [showSignOut, setShowSignOut] = useState(false);
   const hoverTimers = React.useRef<number[]>([]);
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, signOut, isAdmin } = useAuth();
   const [cartCount, setCartCount] = useState(0);
 
 
@@ -142,17 +143,18 @@ const Navbar: React.FC = () => {
               sx={{ position: 'relative' }}
               onMouseEnter={() => {
                 setUserMenuOpen(true);
-                setShowProfile(false); setShowOrders(false); setShowSignOut(false);
+                setShowProfile(false); setShowOrders(false); setShowAdmin(false); setShowSignOut(false);
                 hoverTimers.current.forEach(t => window.clearTimeout(t)); hoverTimers.current = [];
 
                 hoverTimers.current.push(window.setTimeout(() => setShowProfile(true), 20));
                 hoverTimers.current.push(window.setTimeout(() => setShowOrders(true), 170));
+                if (isAdmin()) hoverTimers.current.push(window.setTimeout(() => setShowAdmin(true), 250));
                 hoverTimers.current.push(window.setTimeout(() => setShowSignOut(true), 320));
               }}
               onMouseLeave={() => {
                 setUserMenuOpen(false);
                 hoverTimers.current.forEach(t => window.clearTimeout(t)); hoverTimers.current = [];
-                setShowProfile(false); setShowOrders(false); setShowSignOut(false);
+                setShowProfile(false); setShowOrders(false); setShowAdmin(false); setShowSignOut(false);
               }}
             >
               <Button
@@ -193,7 +195,7 @@ const Navbar: React.FC = () => {
                       }}>
                       <Button
                         onClick={() => navigate('/profile')}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
                       >
                         Profile
                       </Button>
@@ -205,11 +207,25 @@ const Navbar: React.FC = () => {
                       }}>
                       <Button
                         onClick={() => navigate('/orders')}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
                       >
                         My Orders
                       </Button>
                     </Box>
+                    {isAdmin() && (
+                    <Box sx={{
+                        opacity: showAdmin ? 1 : 0,
+                        transform: showAdmin ? 'translateX(0)' : 'translateX(-10px)',
+                        transition: 'opacity 0.5s, transform 0.5s',
+                      }}>
+                      <Button
+                        onClick={() => navigate('/admin/tools')}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
+                      >
+                        Admin Tools
+                      </Button>
+                    </Box>
+                    )}
                     <Box sx={{
                         opacity: showSignOut ? 1 : 0,
                         transform: showSignOut ? 'translateX(0)' : 'translateX(-10px)',
@@ -217,7 +233,7 @@ const Navbar: React.FC = () => {
                       }}>
                       <Button
                         onClick={() => signOut()}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2 }}
+                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
                       >
                         Sign out
                       </Button>

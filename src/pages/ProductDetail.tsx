@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Button, CardMedia, CircularProgress, Grid, Paper, Typography, useTheme } from '@mui/material';
+import { Box, Button, CardMedia, CircularProgress, Grid, Typography, useTheme } from '@mui/material';
 import { getProductById, ProductWithImages, createCheckoutSession, syncCart } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';

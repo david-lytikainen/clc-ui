@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress, List, ListItem, Grid } from '@mui/material';
 import { Tooltip } from 'react-tooltip';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, Order } from '../services/api';
+import { getOrders, Order, getCart } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import OrderStatus from '../components/OrderStatus';
 
@@ -13,6 +13,8 @@ const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+
+
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -29,6 +31,16 @@ const MyOrders: React.FC = () => {
         setError(err?.message || 'Unable to load orders');
       })
       .finally(() => setLoading(false));
+
+    getCart()
+      .then((res) => {
+        const items = res.items || [];
+        if (items.length === 0) {
+          localStorage.setItem('cart', JSON.stringify({ items: [] }));
+          window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: [] } }));
+        }
+      })
+      .catch(() => {});
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
@@ -111,6 +123,16 @@ const MyOrders: React.FC = () => {
             )}
             <Grid container>
                 <Grid item xs={12} sm={6} md={4} lg={3}>
+                    {o.order_number && (
+                      <Typography
+                        variant="body1"
+                        component="button"
+                        sx={{ fontWeight: 600, border: 0, background: 'none', cursor: 'pointer', color: 'primary.main', textAlign: 'left', p: 0, display: 'block', mb: 0.5 }}
+                        onClick={() => navigate(`/orders/${o.order_number}`)}
+                      >
+                        Order #{o.order_number}
+                      </Typography>
+                    )}
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
                         {o.product_title}
                     </Typography>

@@ -16,7 +16,10 @@ import Wallets from './pages/Wallets';
 import Accessories from './pages/Accessories';
 import ProductDetail from './pages/ProductDetail';
 import MyOrders from './pages/MyOrders';
+import OrderDetail from './pages/OrderDetail';
 import Cart from './pages/Cart';
+import Profile from './pages/Profile';
+import AdminTools from './pages/AdminTools';
 
 function App() {
   const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
@@ -68,7 +71,10 @@ function App() {
             <Route path="/accessories" element={<Accessories />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/orders" element={<MyOrders />} />
+            <Route path="/orders/:orderNumber" element={<OrderDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin/tools" element={<AdminTools />} />
           </Routes>
         </Layout>
       </Router>

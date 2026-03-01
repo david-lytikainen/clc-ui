@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, CircularProgress, List, ListItem, Grid, IconButton } from '@mui/material';
+import { Box, Typography, CircularProgress, List, ListItem, Grid, IconButton, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 import { Tooltip } from 'react-tooltip';
 import { useNavigate } from 'react-router-dom';
-import { getCart, syncCart } from '../services/api';
+import { getCart, syncCart, createCartCheckoutSession } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../styles/colors';
 
 interface CartItem {
   id: number;
@@ -19,6 +22,8 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<CartItem[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -68,9 +73,11 @@ const Cart: React.FC = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        My Cart
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          My Cart
+        </Typography>
+      </Box>
       <List sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {items.map((it) => (
           <ListItem key={it.id} divider sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', p: 2, position: 'relative' }}>
@@ -133,31 +140,106 @@ const Cart: React.FC = () => {
                 </Typography>
               </Grid>
             </Grid>
-            <IconButton
-              size="small"
-              sx={{ position: 'absolute', right: 8, top: 8 }}
-              onClick={async () => {
-                const filtered = items.filter(x => x.id !== it.id);
-                setItems(filtered);
-                localStorage.setItem('cart', JSON.stringify({ items: filtered }));
-                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: filtered } }));
-                if (isAuthenticated) {
-                  try { await syncCart(filtered); } catch {};
-                }
-              }}
-              data-tooltip-id="remove-tooltip"
-              data-tooltip-content="Remove from cart"
-              data-tooltip-place="bottom"
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
+            <Box sx={{ position: 'absolute', right: 8, top: 8, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '9999px',
+                  overflow: 'hidden',
+                }}
+              >
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    const next = it.quantity <= 1 ? 0 : it.quantity - 1;
+                    const nextItems = next === 0
+                      ? items.filter(x => x.id !== it.id)
+                      : items.map(x => x.id === it.id ? { ...x, quantity: next } : x);
+                    setItems(nextItems);
+                    localStorage.setItem('cart', JSON.stringify({ items: nextItems }));
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: nextItems } }));
+                    if (isAuthenticated) { syncCart(nextItems).catch(() => {}); }
+                  }}
+                  sx={{ p: 0.5 }}
+                >
+                  <RemoveIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+                <Typography variant="body2" sx={{ px: 1, minWidth: 20, textAlign: 'center' }}>
+                  {it.quantity}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    const nextItems = items.map(x =>
+                      x.id === it.id ? { ...x, quantity: x.quantity + 1 } : x
+                    );
+                    setItems(nextItems);
+                    localStorage.setItem('cart', JSON.stringify({ items: nextItems }));
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: nextItems } }));
+                    if (isAuthenticated) { syncCart(nextItems).catch(() => {}); }
+                  }}
+                  sx={{ p: 0.5 }}
+                >
+                  <AddIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Box>
+              <IconButton
+                size="small"
+                onClick={async () => {
+                  const filtered = items.filter(x => x.id !== it.id);
+                  setItems(filtered);
+                  localStorage.setItem('cart', JSON.stringify({ items: filtered }));
+                  window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: filtered } }));
+                  if (isAuthenticated) {
+                    try { await syncCart(filtered); } catch {};
+                  }
+                }}
+                data-tooltip-id="remove-tooltip"
+                data-tooltip-content="Remove from cart"
+                data-tooltip-place="bottom"
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
             <Tooltip id="remove-tooltip" style={{ padding: '2px 4px', fontSize: '0.75rem' }} />
           </ListItem>
         ))}
 
-        <ListItem sx={{ display: 'flex', justifyContent: 'space-between', p: 2 }}>
+        <ListItem sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
           <Typography variant="h6">Total</Typography>
           <Typography variant="h6">${(totalCents / 100).toFixed(2)}</Typography>
+          {checkoutError && (
+            <Typography variant="body2" color="error" sx={{ flex: 1 }}>
+              {checkoutError}
+            </Typography>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ ml: 1 }}
+            disabled={checkoutLoading}
+            onClick={async () => {
+              if (!items?.length) return;
+              setCheckoutLoading(true);
+              setCheckoutError(null);
+              try {
+                if (isAuthenticated) await syncCart(items);
+                const { url } = await createCartCheckoutSession(
+                  items.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))
+                );
+                if (url) window.location.href = url;
+              } catch (e: any) {
+                const msg = e?.response?.data?.error || e?.message || 'Checkout failed';
+                setCheckoutError(msg);
+                setCheckoutLoading(false);
+              }
+            }}
+          >
+            {checkoutLoading ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : `Proceed to checkout (${items.reduce((s, i) => s + i.quantity, 0)} items)`}
+          </Button>
         </ListItem>
       </List>
     </Box>
