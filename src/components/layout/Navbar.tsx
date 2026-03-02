@@ -69,10 +69,10 @@ const Navbar: React.FC = () => {
   }, [isAuthenticated]);
   const navLinks = [
     { label: 'SHOP ALL', path: '/shop' },
-    { label: 'LEATHER BAGS', path: '/leather-bags' },
+    { label: 'BAGS', path: '/leather-bags' },
     { label: 'WALLETS', path: '/wallets' },
     { label: 'ACCESSORIES', path: '/accessories' },
-    { label: 'GIFT CARDS', path: '/gift-cards' },
+    // { label: 'GIFT CARDS', path: '/gift-cards' },
     { label: 'ABOUT', path: '/about' },
   ];
 
@@ -118,15 +118,24 @@ const Navbar: React.FC = () => {
                 key={link.path}
                 component={Link}
                 to={link.path}
+                disableRipple
                 sx={{
                   color: theme.palette.text.primary,
                   textTransform: 'none',
                   fontWeight: 500,
                   fontSize: '0.9rem',
                   letterSpacing: '0.05em',
+                  borderRadius: 0,
+                  boxShadow: 'none',
+                  minWidth: 'auto',
                   '&:hover': {
                     backgroundColor: 'transparent',
                     color: theme.palette.secondary.main,
+                    boxShadow: 'none',
+                  },
+                  '&:focus-visible': {
+                    outline: 'none',
+                    backgroundColor: 'transparent',
                   },
                 }}
               >
@@ -158,15 +167,24 @@ const Navbar: React.FC = () => {
               }}
             >
               <Button
+                disableRipple
                 sx={{
                   color: theme.palette.text.primary,
                   textTransform: 'none',
                   fontWeight: 500,
                   fontSize: '0.9rem',
                   letterSpacing: '0.05em',
+                  borderRadius: 0,
+                  boxShadow: 'none',
+                  minWidth: 'auto',
                   '&:hover': {
                     backgroundColor: 'transparent',
                     color: theme.palette.secondary.main,
+                    boxShadow: 'none',
+                  },
+                  '&:focus-visible': {
+                    outline: 'none',
+                    backgroundColor: 'transparent',
                   },
                 }}
               >
@@ -179,6 +197,10 @@ const Navbar: React.FC = () => {
                     top: '100%',
                     right: 0,
                     bgcolor: 'transparent',
+                    minWidth: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
                   }}
                 >
                   <Box
@@ -186,6 +208,7 @@ const Navbar: React.FC = () => {
                       bgcolor: 'transparent',
                       display: 'flex',
                       flexDirection: 'column',
+                      alignItems: 'flex-end',
                     }}
                   >
                     <Box sx={{
@@ -194,8 +217,20 @@ const Navbar: React.FC = () => {
                         transition: 'opacity 0.5s, transform 0.5s',
                       }}>
                       <Button
+                        disableRipple
                         onClick={() => navigate('/profile')}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
+                        sx={{
+                          justifyContent: 'flex-end',
+                          textTransform: 'none',
+                          py: 0.5,
+                          lineHeight: 1.2,
+                          whiteSpace: 'nowrap',
+                          borderRadius: 0,
+                          boxShadow: 'none',
+                          minWidth: 'auto',
+                          '&:hover': { backgroundColor: 'transparent', boxShadow: 'none' },
+                          '&:focus-visible': { outline: 'none', backgroundColor: 'transparent' },
+                        }}
                       >
                         Profile
                       </Button>
@@ -206,8 +241,20 @@ const Navbar: React.FC = () => {
                         transition: 'opacity 0.5s, transform 0.5s',
                       }}>
                       <Button
+                        disableRipple
                         onClick={() => navigate('/orders')}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
+                        sx={{
+                          justifyContent: 'flex-end',
+                          textTransform: 'none',
+                          py: 0.5,
+                          lineHeight: 1.2,
+                          whiteSpace: 'nowrap',
+                          borderRadius: 0,
+                          boxShadow: 'none',
+                          minWidth: 'auto',
+                          '&:hover': { backgroundColor: 'transparent', boxShadow: 'none' },
+                          '&:focus-visible': { outline: 'none', backgroundColor: 'transparent' },
+                        }}
                       >
                         My Orders
                       </Button>
@@ -219,8 +266,20 @@ const Navbar: React.FC = () => {
                         transition: 'opacity 0.5s, transform 0.5s',
                       }}>
                       <Button
+                        disableRipple
                         onClick={() => navigate('/admin/tools')}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
+                        sx={{
+                          justifyContent: 'flex-end',
+                          textTransform: 'none',
+                          py: 0.5,
+                          lineHeight: 1.2,
+                          whiteSpace: 'nowrap',
+                          borderRadius: 0,
+                          boxShadow: 'none',
+                          minWidth: 'auto',
+                          '&:hover': { backgroundColor: 'transparent', boxShadow: 'none' },
+                          '&:focus-visible': { outline: 'none', backgroundColor: 'transparent' },
+                        }}
                       >
                         Admin Tools
                       </Button>
@@ -232,8 +291,20 @@ const Navbar: React.FC = () => {
                         transition: 'opacity 0.5s, transform 0.5s',
                       }}>
                       <Button
+                        disableRipple
                         onClick={() => signOut()}
-                        sx={{ justifyContent: 'flex-end', textTransform: 'none', py:0.5, lineHeight:1.2, whiteSpace: 'nowrap' }}
+                        sx={{
+                          justifyContent: 'flex-end',
+                          textTransform: 'none',
+                          py: 0.5,
+                          lineHeight: 1.2,
+                          whiteSpace: 'nowrap',
+                          borderRadius: 0,
+                          boxShadow: 'none',
+                          minWidth: 'auto',
+                          '&:hover': { backgroundColor: 'transparent', boxShadow: 'none' },
+                          '&:focus-visible': { outline: 'none', backgroundColor: 'transparent' },
+                        }}
                       >
                         Sign out
                       </Button>

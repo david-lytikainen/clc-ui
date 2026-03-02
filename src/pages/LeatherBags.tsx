@@ -17,8 +17,10 @@ const LeatherBags: React.FC = () => {
 
   return (
     <Box sx={{ backgroundColor: 'background.paper' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 3 }}>
-        <Typography variant="h4">Leather Bags</Typography>
+      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', px: 3, py: 4, minHeight: 72, maxHeight: 85 }}>
+        <Typography variant="h4" sx={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+          Bags
+        </Typography>
         {isAdmin() && (
           <Button
             variant="contained"

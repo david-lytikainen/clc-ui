@@ -22,7 +22,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
         <CardContent
           sx={{
             backgroundColor: 'background.default',
-            textAlign: 'center',
+            textAlign: 'center', py: 1
           }}
         >
           <Typography variant="subtitle1" gutterBottom sx={{ mb: 0.2 }}>{product.title}</Typography>

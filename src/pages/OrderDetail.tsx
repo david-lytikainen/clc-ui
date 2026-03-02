@@ -120,7 +120,7 @@ const OrderDetail: React.FC = () => {
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Thank you for your order!
+        Thanks for your order!
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Order #{data.order_number}

@@ -78,7 +78,7 @@ const ProductDetail: React.FC = () => {
                 onClick={() => setSelectedImage(url)}
                 sx={{
                   width: 64,
-                  height: 64,
+                  height: 90,
                   objectFit: 'cover',
                   cursor: 'pointer',
                   borderRadius: 1,
@@ -90,7 +90,7 @@ const ProductDetail: React.FC = () => {
         </Grid>
         <Grid item xs={10} md={4}>
           <Box sx={{ p: 2, pl: 0 }}>
-            <CardMedia component="img" height="500" image={selectedImage || product.image_urls?.[0]} alt={product.title} />
+            <CardMedia component="img" height="700" image={selectedImage || product.image_urls?.[0]} alt={product.title} />
           </Box>
         </Grid>
         <Grid item xs={12} md={7}>

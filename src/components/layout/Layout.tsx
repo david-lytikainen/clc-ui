@@ -2,6 +2,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import Navbar from './Navbar';
+import BannerBar from './BannerBar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
+      <BannerBar />
       <Box
         component="main"
         sx={{

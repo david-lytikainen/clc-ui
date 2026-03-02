@@ -213,3 +213,31 @@ export const updateAdminOrder = async (
   const response = await api.patch<OrderDetailResponse>(`/admin/orders/${orderNumber}`, data);
   return response.data;
 };
+
+export type BannerBackgroundColor = 'primary' | 'primary_dark' | 'secondary' | 'secondary_dark';
+
+export interface Banner {
+  id: number;
+  is_active: boolean;
+  text: string;
+  background_color: BannerBackgroundColor;
+  created_at: string;
+}
+
+export interface BannerResponse {
+  banner: Banner | null;
+}
+
+export const getBanner = async (): Promise<BannerResponse> => {
+  const response = await api.get<BannerResponse>('/banner');
+  return response.data;
+};
+
+export const createBanner = async (data: {
+  is_active: boolean;
+  text: string;
+  background_color: BannerBackgroundColor;
+}): Promise<Banner> => {
+  const response = await api.post<Banner>('/admin/banner', data);
+  return response.data;
+};
