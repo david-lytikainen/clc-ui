@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getProducts, ProductCard } from '../services/api';
 
-export const useProducts = (productType?: string) => {
+export const useProducts = () => {
   const [products, setProducts] = useState<ProductCard[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -12,7 +12,7 @@ export const useProducts = (productType?: string) => {
       setLoading(true);
       setError(null);
       try {
-        const res = await getProducts(productType || 'all');
+        const res = await getProducts();
         if (!mounted) return;
         setProducts(res || []);
       } catch (err) {
@@ -28,7 +28,7 @@ export const useProducts = (productType?: string) => {
     return () => {
       mounted = false;
     };
-  }, [productType]);
+  }, []);
 
   return { products, setProducts, loading, error } as const;
 };

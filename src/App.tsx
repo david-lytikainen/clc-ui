@@ -9,11 +9,8 @@ import './styles/global.css';
 import { theme } from './styles/theme';
 import { colors } from './styles/colors';
 import Layout from './components/layout/Layout';
-import ShopAll from './pages/ShopAll';
+import ShopPage from './pages/ShopPage';
 import { useAuth } from './context/AuthContext';
-import LeatherBags from './pages/LeatherBags';
-import Wallets from './pages/Wallets';
-import Accessories from './pages/Accessories';
 import ProductDetail from './pages/ProductDetail';
 import MyOrders from './pages/MyOrders';
 import OrderDetail from './pages/OrderDetail';
@@ -65,10 +62,10 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/shop" element={<ShopAll />} />
-            <Route path="/leather-bags" element={<LeatherBags />} />
-            <Route path="/wallets" element={<Wallets />} />
-            <Route path="/accessories" element={<Accessories />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/leather-bags" element={<ShopPage />} />
+            <Route path="/wallets" element={<ShopPage />} />
+            <Route path="/accessories" element={<ShopPage />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/orders" element={<MyOrders />} />
             <Route path="/orders/:orderNumber" element={<OrderDetail />} />

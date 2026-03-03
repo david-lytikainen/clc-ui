@@ -150,8 +150,20 @@ const OrderDetail: React.FC = () => {
                 disabled={savingField === 'tracking'}
                 sx={{
                   minWidth: 72,
+                  height: 40,
                   transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                  ...(savedField === 'tracking' ? { backgroundColor: theme.palette.secondary.main, color: '#fff', borderColor: theme.palette.secondary.main } : {}),
+                  ...(savedField === 'tracking'
+                    ? {
+                        backgroundColor: theme.palette.secondary.main,
+                        color: '#fff',
+                        borderColor: theme.palette.secondary.main,
+                        '&:hover': {
+                          backgroundColor: theme.palette.secondary.main,
+                          color: '#fff',
+                          borderColor: theme.palette.secondary.main,
+                        },
+                      }
+                    : {}),
                 }}
               >
                 <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
@@ -262,8 +274,20 @@ const OrderDetail: React.FC = () => {
                         disabled={savingField === 'status'}
                         sx={{
                           minWidth: 72,
+                          height: 40,
                           transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                          ...(savedField === 'status' ? { backgroundColor: theme.palette.secondary.main, color: '#fff', borderColor: theme.palette.secondary.main } : {}),
+                          ...(savedField === 'status'
+                            ? {
+                                backgroundColor: theme.palette.secondary.main,
+                                color: '#fff',
+                                borderColor: theme.palette.secondary.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.main,
+                                  color: '#fff',
+                                  borderColor: theme.palette.secondary.main,
+                                },
+                              }
+                            : {}),
                         }}
                       >
                         <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>

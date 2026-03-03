@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Typography,
+} from '@mui/material';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { getProductTypes } from '../services/api';
 import type { ProductType } from '../services/api';
 
@@ -21,6 +43,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
   });
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -45,6 +68,21 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     setFormFiles(files);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const moveFile = (index: number, direction: 'up' | 'down') => {
+    setFormFiles((prev) => {
+      const next = [...prev];
+      const j = direction === 'up' ? index - 1 : index + 1;
+      if (j < 0 || j >= next.length) return prev;
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setFormFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCreateSubmit = async () => {
@@ -114,7 +152,70 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
           </FormControl>
           <TextField label="Dimensions" value={form.dimensions} onChange={handleFormChange('dimensions')} fullWidth />
           <TextField label="Color" value={form.color} onChange={handleFormChange('color')} fullWidth />
-          <input type="file" multiple accept="image/*" onChange={handleFilesChange} />
+
+          <Box>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFilesChange}
+              style={{ display: 'none' }}
+            />
+            <Button
+              variant="outlined"
+              component="span"
+              startIcon={<CloudUploadIcon />}
+              onClick={() => fileInputRef.current?.click()}
+              fullWidth
+              sx={{ py: 1.5 }}
+            >
+              Upload images
+            </Button>
+            {formFiles.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Sort order (first = primary image)
+                </Typography>
+                <List dense disablePadding sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
+                  {formFiles.map((file, index) => (
+                    <ListItem
+                      key={`${file.name}-${index}`}
+                      secondaryAction={
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                          <IconButton
+                            size="small"
+                            aria-label="Move up"
+                            onClick={() => moveFile(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ArrowUpwardIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            aria-label="Move down"
+                            onClick={() => moveFile(index, 'down')}
+                            disabled={index === formFiles.length - 1}
+                          >
+                            <ArrowDownwardIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" aria-label="Remove" onClick={() => removeFile(index)}>
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
+                      <ListItemText
+                        primary={file.name}
+                        secondary={index === 0 ? 'Primary' : `#${index + 1}`}
+                        primaryTypographyProps={{ noWrap: true }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+          </Box>
         </Stack>
       </DialogContent>
       <DialogActions>

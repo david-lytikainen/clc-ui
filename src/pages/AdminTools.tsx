@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, Accordion, AccordionSummary, AccordionDetails, List, ListItem, Link, Pagination, CircularProgress, Switch, FormControlLabel, TextField, Button, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Box, Typography, Collapse, List, ListItem, Pagination, CircularProgress, Switch, FormControlLabel, TextField, Button, ToggleButtonGroup, ToggleButton, Chip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
@@ -32,6 +34,11 @@ const AdminTools: React.FC = () => {
   const [savingBanner, setSavingBanner] = useState(false);
   const [savedBanner, setSavedBanner] = useState(false);
   const savedBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [bannerOpen, setBannerOpen] = useState(false);
+  const [hideDelivered, setHideDelivered] = useState(false);
+  const [dateOrder, setDateOrder] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin()) {
@@ -93,68 +100,218 @@ const AdminTools: React.FC = () => {
 
   const orderNumbers = data ? Object.keys(data.orders_by_number) : [];
 
+  // Client-side filter and sort (no backend call)
+  const getFilteredAndSortedOrderNumbers = (): string[] => {
+    let list = [...orderNumbers];
+    const ordersByNumber = data?.orders_by_number ?? {};
+    if (hideDelivered) {
+      list = list.filter((num) => {
+        const orders = ordersByNumber[num] || [];
+        const first = orders[0];
+        const status = first?.status || 'Ordered';
+        return status !== 'Delivered';
+      });
+    }
+    if (statusFilter) {
+      list = list.filter((num) => {
+        const orders = ordersByNumber[num] || [];
+        const first = orders[0];
+        const status = first?.status || 'Ordered';
+        return status === statusFilter;
+      });
+    }
+    list.sort((a, b) => {
+      const ordersA = ordersByNumber[a] || [];
+      const ordersB = ordersByNumber[b] || [];
+      const dateA = ordersA[0]?.created_at ? new Date(ordersA[0].created_at).getTime() : 0;
+      const dateB = ordersB[0]?.created_at ? new Date(ordersB[0].created_at).getTime() : 0;
+      return dateOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+    return list;
+  };
+
+  const displayedOrderNumbers = getFilteredAndSortedOrderNumbers();
+
+  const collapsibleHeaderSx = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    py: 1.5,
+    px: 2,
+    backgroundColor: colors.primary.light,
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: 0,
+    transition: 'background-color 0.25s ease',
+    '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
+    textAlign: 'left',
+  };
+
+  const toggleButtonSelectedSx = {
+    '& .MuiToggleButton-root.Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      color: '#fff',
+      '&:hover': { backgroundColor: theme.palette.primary.light, opacity: 0.9 },
+    },
+  };
+
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Admin tools
+        Admin Tools
       </Typography>
-      <Accordion defaultExpanded={false}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography>Update Orders</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              <List>
-                {orderNumbers.map((orderNumber) => {
-                  const orders = data!.orders_by_number[orderNumber] || [];
-                  const totalCents = orders.reduce((s, o) => s + (o.amount_cents || 0), 0);
-                  const first = orders[0];
-                  const created = first?.created_at ? new Date(first.created_at).toLocaleDateString() : '—';
-                  return (
-                    <ListItem key={orderNumber} sx={{ display: 'block', py: 1 }}>
-                      <Link
-                        component="button"
-                        variant="body1"
-                        onClick={() => navigate(`/orders/${orderNumber}`)}
-                        sx={{ cursor: 'pointer', textAlign: 'left' }}
-                      >
-                        Order #{orderNumber} — {created} — ${(totalCents / 100).toFixed(2)} ({orders.length} item{orders.length !== 1 ? 's' : ''})
-                      </Link>
-                    </ListItem>
-                  );
-                })}
-              </List>
-              {data && data.total > PER_PAGE && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                  <Pagination
-                    count={Math.ceil(data.total / PER_PAGE)}
-                    page={page}
-                    onChange={(_, p) => setPage(p)}
-                    color="primary"
+
+      {/* All Orders */}
+      <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Box
+          component="button"
+          onClick={() => setOrdersOpen((o) => !o)}
+          sx={collapsibleHeaderSx}
+        >
+          <Typography>All Orders</Typography>
+          <ExpandMoreIcon sx={{ transform: ordersOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+        </Box>
+        <Collapse in={ordersOpen}>
+          <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                {/* Filters - client-side only */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <FormControlLabel
+                    control={<Switch checked={hideDelivered} onChange={(_, v) => setHideDelivered(v)} color="primary" />}
+                    label="Hide delivered"
                   />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mr: 0.5 }}>Ordered Date</Typography>
+                    <ToggleButtonGroup
+                      value={dateOrder}
+                      exclusive
+                      onChange={(_, v) => v != null && setDateOrder(v)}
+                      size="small"
+                      sx={toggleButtonSelectedSx}
+                    >
+                      <ToggleButton value="asc" aria-label="oldest first">
+                        <ArrowUpwardIcon fontSize="small" />
+                      </ToggleButton>
+                      <ToggleButton value="desc" aria-label="newest first">
+                        <ArrowDownwardIcon fontSize="small" />
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <ToggleButtonGroup
+                      value={statusFilter}
+                      exclusive
+                      onChange={(_, v) => setStatusFilter(v === undefined ? null : v)}
+                      size="small"
+                      sx={toggleButtonSelectedSx}
+                    >
+                      <ToggleButton value="Ordered" sx={{ textTransform: 'none' }}>Ordered</ToggleButton>
+                      <ToggleButton value="Shipped" sx={{ textTransform: 'none' }}>Shipped</ToggleButton>
+                      <ToggleButton value="Delivered" sx={{ textTransform: 'none' }}>Delivered</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
                 </Box>
-              )}
-            </>
-          )}
-        </AccordionDetails>
-      </Accordion>
-      <Accordion defaultExpanded={false} sx={{ mt: 1 }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <List sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {displayedOrderNumbers.map((orderNumber) => {
+                    const orders = data!.orders_by_number[orderNumber] || [];
+                    const totalCents = orders.reduce((s, o) => s + (o.amount_cents || 0), 0);
+                    const first = orders[0];
+                    const status = first?.status || 'Ordered';
+                    const created = first?.created_at ? new Date(first.created_at).toLocaleDateString() : '—';
+                    const byLine = first?.user_id != null && (first?.user_first_name != null || first?.user_email != null)
+                      ? ` by ${[first?.user_first_name, first?.user_last_name].filter(Boolean).join(' ')} ${first?.user_email ?? ''}`.trim()
+                      : '';
+                    const itemsLine = orders.map((o) => `${o.product_title ?? 'Item'} x${o.quantity ?? 1}`).join(', ');
+                    return (
+                      <ListItem
+                        key={orderNumber}
+                        divider
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          gap: 2,
+                          p: 2,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body1" sx={{ display: 'block', mb: 0.5 }}>
+                            <Typography
+                              component="button"
+                              variant="body1"
+                              onClick={() => navigate(`/orders/${orderNumber}`)}
+                              sx={{
+                                fontWeight: 600,
+                                border: 0,
+                                background: 'none',
+                                cursor: 'pointer',
+                                color: 'primary.main',
+                                textAlign: 'left',
+                                p: 0,
+                                textDecoration: 'none',
+                                '&:hover': { textDecoration: 'none' },
+                              }}
+                            >
+                              Order #{orderNumber}
+                            </Typography>
+                            {byLine && <Typography component="span" variant="body1"> {byLine}</Typography>}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {itemsLine}: <strong>${(totalCents / 100).toFixed(2)}</strong>
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
+                          <Chip label={status} size="small" color="primary" variant="outlined" sx={{ mb: 0.5 }} />
+                          <Typography variant="body2" color="text.secondary">
+                            Ordered on {created}
+                          </Typography>
+                        </Box>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+                {data && data.total > PER_PAGE && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Pagination
+                      count={Math.ceil(data.total / PER_PAGE)}
+                      page={page}
+                      onChange={(_, p) => setPage(p)}
+                      color="primary"
+                    />
+                  </Box>
+                )}
+              </>
+            )}
+          </Box>
+        </Collapse>
+      </Box>
+
+      {/* Banner */}
+      <Box sx={{ mt: 1, border: '1px solid', borderColor: 'divider' }}>
+        <Box
+          component="button"
+          onClick={() => setBannerOpen((o) => !o)}
+          sx={collapsibleHeaderSx}
+        >
           <Typography>Banner</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {bannerLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : (
-            <>
-              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+          <ExpandMoreIcon sx={{ transform: bannerOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+        </Box>
+        <Collapse in={bannerOpen}>
+          <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
+            {bannerLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                 <FormControlLabel
                   control={<Switch checked={bannerOn} onChange={(_, v) => setBannerOn(v)} color="primary" />}
                   label="Banner on"
@@ -176,6 +333,7 @@ const AdminTools: React.FC = () => {
                   exclusive
                   onChange={(_, v) => v != null && setBannerColor(v)}
                   size="small"
+                  sx={toggleButtonSelectedSx}
                 >
                   {BANNER_COLOR_OPTIONS.map((opt) => (
                     <ToggleButton key={opt.value} value={opt.value} sx={{ textTransform: 'none' }}>
@@ -195,8 +353,20 @@ const AdminTools: React.FC = () => {
                   disabled={savingBanner}
                   sx={{
                     minWidth: 72,
+                    height: 40,
                     transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                    ...(savedBanner ? { backgroundColor: theme.palette.secondary.main, color: '#fff', borderColor: theme.palette.secondary.main } : {}),
+                    ...(savedBanner
+                      ? {
+                          backgroundColor: theme.palette.secondary.main,
+                          color: '#fff',
+                          borderColor: theme.palette.secondary.main,
+                          '&:hover': {
+                            backgroundColor: theme.palette.secondary.main,
+                            color: '#fff',
+                            borderColor: theme.palette.secondary.main,
+                          },
+                        }
+                      : {}),
                   }}
                 >
                   <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
@@ -209,8 +379,9 @@ const AdminTools: React.FC = () => {
               </Box>
             </>
           )}
-        </AccordionDetails>
-      </Accordion>
+          </Box>
+        </Collapse>
+      </Box>
     </Box>
   );
 };
