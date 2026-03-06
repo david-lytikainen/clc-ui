@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { colors } from '../styles/colors';
 import { createAccount } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import ForgotPasswordTab from './ForgotPasswordTab';
 
 interface SignInModalProps {
   open: boolean;
@@ -14,7 +15,7 @@ interface SignInModalProps {
 const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const auth = useAuth();
-  const [activeTab, setActiveTab] = useState(0); // 0 = Sign In, 1 = Create Account
+  const [activeTab, setActiveTab] = useState(0); // 0 = Sign In, 1 = Create Account, 2 = Forgot Password
   
   // Sign In form state
   const [email, setEmail] = useState('');
@@ -150,6 +151,17 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
               },
             }}
           />
+          <Tab 
+            label="Forgot Password" 
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              color: theme.palette.text.secondary,
+              '&.Mui-selected': {
+                color: theme.palette.primary.main,
+              },
+            }}
+          />
         </Tabs>
         <IconButton
           onClick={handleClose}
@@ -164,6 +176,11 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
         </IconButton>
       </DialogTitle>
 
+      {activeTab === 2 ? (
+        <DialogContent>
+          <ForgotPasswordTab onClose={handleClose} />
+        </DialogContent>
+      ) : (
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
@@ -245,6 +262,9 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
                     },
                   }}
                 />
+                <Typography variant="body2" color="text.secondary" sx={{ mb: -1 }}>
+                  Password must be at least 6 characters.
+                </Typography>
                 <TextField
                   label="Password"
                   type="password"
@@ -311,6 +331,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
           </Button>
         </DialogActions>
       </form>
+      )}
     </Dialog>
   );
 };

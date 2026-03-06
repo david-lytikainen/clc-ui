@@ -5,9 +5,10 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import { Tooltip } from 'react-tooltip';
 import { useNavigate } from 'react-router-dom';
-import { getCart, syncCart, createCartCheckoutSession } from '../services/api';
+import { getCart, syncCart, createCartCheckoutSession, updateAllergicToCinnamon, getCurrentUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
+import CinnamonModal from '../components/CinnamonModal';
 
 interface CartItem {
   id: number;
@@ -24,7 +25,8 @@ const Cart: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
+  const { isAuthenticated, user, setUserFromPayload } = useAuth();
 
   useEffect(() => {
     const loadLocal = () => {
@@ -71,8 +73,38 @@ const Cart: React.FC = () => {
 
   const totalCents = items.reduce((s, i) => s + i.price_cents * i.quantity, 0);
 
+  const handleCinnamonAnswer = async (allergic: boolean) => {
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      if (user) {
+        await updateAllergicToCinnamon(allergic);
+        const u = await getCurrentUser();
+        setUserFromPayload(u);
+      }
+      if (isAuthenticated) await syncCart(items);
+      const { url } = await createCartCheckoutSession(
+        items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+        allergic
+      );
+      setCinnamonModalOpen(false);
+      if (url) window.location.href = url;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Checkout failed';
+      setCheckoutError(msg);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 4 }}>
+      <CinnamonModal
+        open={cinnamonModalOpen}
+        onClose={() => setCinnamonModalOpen(false)}
+        onAnswer={handleCinnamonAnswer}
+        loading={checkoutLoading}
+      />
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
           My Cart
@@ -223,12 +255,18 @@ const Cart: React.FC = () => {
             disabled={checkoutLoading}
             onClick={async () => {
               if (!items?.length) return;
+              const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
+              if (needCinnamonAnswer) {
+                setCinnamonModalOpen(true);
+                return;
+              }
               setCheckoutLoading(true);
               setCheckoutError(null);
               try {
                 if (isAuthenticated) await syncCart(items);
                 const { url } = await createCartCheckoutSession(
-                  items.map((i) => ({ product_id: i.product_id, quantity: i.quantity }))
+                  items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+                  user?.allergic_to_cinnamon ?? undefined
                 );
                 if (url) window.location.href = url;
               } catch (e: any) {

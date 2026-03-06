@@ -89,6 +89,29 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
   return response.data;
 };
 
+export const requestForgotPasswordCode = async (email: string): Promise<void> => {
+  await api.post('/forgot-password', { email: email.trim().toLowerCase() });
+};
+
+export const verifyResetCode = async (email: string, code: string): Promise<void> => {
+  await api.post('/verify-reset-code', { email: email.trim().toLowerCase(), code: code.trim() });
+};
+
+export const resetPassword = async (
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/reset-password', {
+    email: email.trim().toLowerCase(),
+    code: code.trim(),
+    new_password: newPassword,
+  });
+  if (response.data.token)
+    localStorage.setItem('authToken', response.data.token);
+  return response.data;
+};
+
 export const getCurrentUser = async (): Promise<{
   id: number;
   role_id: number;
@@ -96,10 +119,15 @@ export const getCurrentUser = async (): Promise<{
   first_name: string;
   last_name: string;
   phone?: string | null;
+  allergic_to_cinnamon?: boolean | null;
   created_at?: string;
 }> => {
   const response = await api.get('/me');
   return response.data;
+};
+
+export const updateAllergicToCinnamon = async (allergic: boolean): Promise<void> => {
+  await api.patch('/me', { allergic_to_cinnamon: allergic });
 };
 
 export const getProducts = async (): Promise<ProductCard[]> => {
@@ -173,13 +201,26 @@ export interface CheckoutSession {
   error?: string;
 }
 
-export const createCheckoutSession = async (priceId: string, quantity = 1): Promise<CheckoutSession> => {
-  const response = await api.post(`/create-checkout-session/${priceId}`, { quantity });
+export const createCheckoutSession = async (
+  priceId: string,
+  quantity = 1,
+  allergicToCinnamon?: boolean
+): Promise<CheckoutSession> => {
+  const response = await api.post(`/create-checkout-session/${priceId}`, {
+    quantity,
+    ...(allergicToCinnamon !== undefined && { allergic_to_cinnamon: allergicToCinnamon }),
+  });
   return response.data;
 };
 
-export const createCartCheckoutSession = async (items: { product_id: number; quantity: number }[]): Promise<{ id: string; url: string }> => {
-  const response = await api.post('/create-cart-checkout-session', { items });
+export const createCartCheckoutSession = async (
+  items: { product_id: number; quantity: number }[],
+  allergicToCinnamon?: boolean
+): Promise<{ id: string; url: string }> => {
+  const response = await api.post('/create-cart-checkout-session', {
+    items,
+    ...(allergicToCinnamon !== undefined && { allergic_to_cinnamon: allergicToCinnamon }),
+  });
   return response.data;
 };
 

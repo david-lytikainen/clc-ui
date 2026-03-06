@@ -22,9 +22,10 @@ import AddIcon from '@mui/icons-material/Add';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { getProductById, ProductWithImages, createCheckoutSession, syncCart, updateProduct, addProductImage, reorderProductImages, deleteProductImage } from '../services/api';
+import { getProductById, ProductWithImages, createCheckoutSession, syncCart, updateProduct, addProductImage, reorderProductImages, deleteProductImage, updateAllergicToCinnamon, getCurrentUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
+import CinnamonModal from '../components/CinnamonModal';
 
 type DraftValues = { title: string; description: string; price: string; dimensions: string; color: string };
 
@@ -36,7 +37,8 @@ const ProductDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [creatingStripeCheckout, setCreatingStripeCheckout] = useState<boolean>(false);
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, user, setUserFromPayload } = useAuth();
+  const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingAll, setEditingAll] = useState(false);
   const [draftValues, setDraftValues] = useState<DraftValues>({ title: '', description: '', price: '', dimensions: '', color: '' });
@@ -223,8 +225,35 @@ const ProductDetail: React.FC = () => {
     );
   }
 
+  const handleCinnamonAnswer = async (allergic: boolean) => {
+    if (!product?.stripe_price_id) return;
+    setCreatingStripeCheckout(true);
+    try {
+      if (user) {
+        await updateAllergicToCinnamon(allergic);
+        const u = await getCurrentUser();
+        setUserFromPayload(u);
+      }
+      const data = await createCheckoutSession(product.stripe_price_id, 1, allergic);
+      setCinnamonModalOpen(false);
+      if (data?.url) window.location.href = data.url;
+      else alert((data && (data as any).error) || 'Failed to create checkout session');
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
+    } finally {
+      setCreatingStripeCheckout(false);
+    }
+  };
+
   return (
     <Box>
+      <CinnamonModal
+        open={cinnamonModalOpen}
+        onClose={() => setCinnamonModalOpen(false)}
+        onAnswer={handleCinnamonAnswer}
+        loading={creatingStripeCheckout}
+      />
       <Dialog open={pendingImageFiles !== null} onClose={cancelPendingImages}>
         <DialogTitle>Upload images</DialogTitle>
         <DialogContent>
@@ -548,9 +577,14 @@ const ProductDetail: React.FC = () => {
                     alert('No price configured for this product');
                     return;
                   }
+                  const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
+                  if (needCinnamonAnswer) {
+                    setCinnamonModalOpen(true);
+                    return;
+                  }
                   try {
                     setCreatingStripeCheckout(true);
-                    const data = await createCheckoutSession(product.stripe_price_id, 1);
+                    const data = await createCheckoutSession(product.stripe_price_id, 1, user?.allergic_to_cinnamon ?? undefined);
                     if (data && data.url) window.location.href = data.url;
                     else {
                       console.error(data);

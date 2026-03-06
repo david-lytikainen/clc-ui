@@ -8,6 +8,7 @@ export type User = {
   email: string;
   first_name: string;
   last_name: string;
+  allergic_to_cinnamon?: boolean | null;
   created_at?: string;
 };
 
