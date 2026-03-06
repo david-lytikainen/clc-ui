@@ -123,10 +123,46 @@ export interface ProductWithImages {
   stripe_price_id: string;
   created_at: string;
   image_urls: string[];
+  image_ids?: number[];
 }
 
 export const getProductById = async (productId: number): Promise<ProductWithImages> => {
   const response = await api.get(`/product/${productId}`);
+  return response.data;
+};
+
+export const updateProduct = async (
+  productId: number,
+  data: { title?: string; description?: string; price?: number; dimensions?: string; color?: string }
+): Promise<ProductWithImages> => {
+  const response = await api.patch<ProductWithImages>(`/product/${productId}`, data);
+  return response.data;
+};
+
+export const addProductImage = async (productId: number, file: File): Promise<ProductWithImages> => {
+  const baseURL = window.localStorage.getItem('apiBaseUrl') || 'http://localhost:5001/api';
+  const token = localStorage.getItem('authToken');
+  const fd = new FormData();
+  fd.append('image', file);
+  const res = await fetch(`${baseURL}/product/${productId}/images`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: fd,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any).error || 'Failed to add image');
+  }
+  return res.json();
+};
+
+export const reorderProductImages = async (productId: number, order: number[]): Promise<ProductWithImages> => {
+  const response = await api.put<ProductWithImages>(`/product/${productId}/images/order`, { order });
+  return response.data;
+};
+
+export const deleteProductImage = async (productId: number, imageId: number): Promise<ProductWithImages> => {
+  const response = await api.delete<ProductWithImages>(`/product/${productId}/images/${imageId}`);
   return response.data;
 };
 
