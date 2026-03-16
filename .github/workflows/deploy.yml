@@ -61,7 +61,7 @@ jobs:
       - name: Deploy to Prod server
         run: |
           cat ~/.ssh/known_hosts
-          scp -o StrictHostKeyChecking=no -r build/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:<SERVER_WEB_ROOT>
+          scp -o StrictHostKeyChecking=no -r build/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/CLC/
 
       - name: Reload Nginx on Prod
         run: |
