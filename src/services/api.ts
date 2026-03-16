@@ -1,11 +1,9 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
-const getBaseUrl = (): string => {
-  return window.localStorage.getItem('apiBaseUrl') || 'http://localhost:5001/api';
-};
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const api: AxiosInstance = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -172,11 +170,10 @@ export const updateProduct = async (
 };
 
 export const addProductImage = async (productId: number, file: File): Promise<ProductWithImages> => {
-  const baseURL = window.localStorage.getItem('apiBaseUrl') || 'http://localhost:5001/api';
   const token = localStorage.getItem('authToken');
   const fd = new FormData();
   fd.append('image', file);
-  const res = await fetch(`${baseURL}/product/${productId}/images`, {
+  const res = await fetch(`${API_BASE_URL}/product/${productId}/images`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: fd,

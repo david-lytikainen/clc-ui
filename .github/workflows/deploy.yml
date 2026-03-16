@@ -1,4 +1,4 @@
-name: Build and Deploy clc-ui
+name: clc-ui
 
 on:
   workflow_dispatch:
