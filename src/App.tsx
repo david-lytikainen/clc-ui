@@ -17,6 +17,7 @@ import OrderDetail from './pages/OrderDetail';
 import Cart from './pages/Cart';
 import Profile from './pages/Profile';
 import AdminTools from './pages/AdminTools';
+import EmailVerified from './pages/EmailVerified';
 
 function App() {
   const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
@@ -71,6 +72,7 @@ function App() {
             <Route path="/orders/:orderNumber" element={<OrderDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/verify-email" element={<EmailVerified />} />
             <Route path="/admin/tools" element={<AdminTools />} />
           </Routes>
         </Layout>

@@ -112,6 +112,10 @@ export const resetPassword = async (
   return response.data;
 };
 
+export const verifyEmail = async (token: string): Promise<void> => {
+  await api.post('/verify-email', { token: token.trim() });
+};
+
 export const getCurrentUser = async (): Promise<{
   id: number;
   role_id: number;
