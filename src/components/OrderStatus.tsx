@@ -1,8 +1,6 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-
 const steps = ['Ordered', 'Shipped', 'Delivered'];
 
 interface Props {

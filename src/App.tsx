@@ -2,7 +2,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
 import { useEffect } from 'react';
 import './styles/fonts.css';
 import './styles/global.css';
@@ -10,7 +9,6 @@ import { theme } from './styles/theme';
 import { colors } from './styles/colors';
 import Layout from './components/layout/Layout';
 import ShopPage from './pages/ShopPage';
-import { useAuth } from './context/AuthContext';
 import ProductDetail from './pages/ProductDetail';
 import MyOrders from './pages/MyOrders';
 import OrderDetail from './pages/OrderDetail';
@@ -20,7 +18,6 @@ import AdminTools from './pages/AdminTools';
 import EmailVerified from './pages/EmailVerified';
 
 function App() {
-  const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth();
   
   // Automatically set all colors from colors.ts as CSS variables
   // This way global.css can use any color without manual updates

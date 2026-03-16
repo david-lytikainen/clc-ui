@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Box, Button, IconButton, Tooltip, Badge } from '@mui/material';
+import { AppBar, Toolbar, Box, Button, IconButton, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useTheme } from '@mui/material/styles';
 import SignInModal from '../SignInModal';
 import { useAuth } from '../../context/AuthContext';
 import { ReactComponent as LargeNameTranspLogo } from '../../assets/LargeNameTranspLogo.svg';
-import { syncCart, getCart } from '../../services/api';
+import { getCart } from '../../services/api';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
