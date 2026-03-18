@@ -8,6 +8,7 @@ import './styles/global.css';
 import { theme } from './styles/theme';
 import { colors } from './styles/colors';
 import Layout from './components/layout/Layout';
+import Home from './pages/Home';
 import ShopPage from './pages/ShopPage';
 import ProductDetail from './pages/ProductDetail';
 import MyOrders from './pages/MyOrders';
@@ -60,6 +61,7 @@ function App() {
       <Router>
         <Layout>
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/leather-bags" element={<ShopPage />} />
             <Route path="/wallets" element={<ShopPage />} />

@@ -142,6 +142,69 @@ export const getProductTypes = async (): Promise<ProductType[]> => {
   return response.data;
 };
 
+export interface BannerPictureItem {
+  id: number;
+  s3_key: string;
+  banner_index: number;
+  image_url: string;
+}
+
+export const getBannerPictures = async (): Promise<BannerPictureItem[]> => {
+  const response = await api.get<BannerPictureItem[]>('/banner-pictures');
+  return response.data;
+};
+
+/** Slot is either existing server item (keep on save) or a new file (upload on save). */
+export type BannerSlotValue = BannerPictureItem | { file: File; previewUrl: string };
+
+export const saveBannerPictures = async (slots: (BannerPictureItem | { file: File } | null)[]): Promise<BannerPictureItem[]> => {
+  const fd = new FormData();
+  for (let n = 0; n < 3; n++) {
+    const v = slots[n];
+    if (v === null) continue;
+    if ('file' in v && v.file) {
+      fd.append(`slot_${n}_file`, v.file);
+    } else if ('id' in v && v.id) {
+      fd.append(`slot_${n}_keep_id`, String(v.id));
+    }
+  }
+  const response = await api.put<BannerPictureItem[]>('/banner-pictures', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+export interface FooterPictureItem {
+  id: number;
+  s3_key: string;
+  footer_index: number;
+  image_url: string;
+}
+
+export const getFooterPictures = async (): Promise<FooterPictureItem[]> => {
+  const response = await api.get<FooterPictureItem[]>('/footer-pictures');
+  return response.data;
+};
+
+export type FooterSlotValue = FooterPictureItem | { file: File; previewUrl: string };
+
+export const saveFooterPictures = async (slots: (FooterPictureItem | { file: File } | null)[]): Promise<FooterPictureItem[]> => {
+  const fd = new FormData();
+  for (let n = 0; n < 2; n++) {
+    const v = slots[n];
+    if (v === null) continue;
+    if ('file' in v && v.file) {
+      fd.append(`slot_${n}_file`, v.file);
+    } else if ('id' in v && v.id) {
+      fd.append(`slot_${n}_keep_id`, String(v.id));
+    }
+  }
+  const response = await api.put<FooterPictureItem[]>('/footer-pictures', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
 export interface ProductWithImages {
   id: number;
   product_type_id: number;

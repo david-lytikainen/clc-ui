@@ -92,7 +92,7 @@ const Navbar: React.FC = () => {
       }}>
         <Box 
           component={Link}
-          to="/shop"
+          to="/"
           sx={{ 
             display: 'flex',
             flexDirection: 'column',

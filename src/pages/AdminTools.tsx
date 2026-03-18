@@ -9,6 +9,7 @@ import { useTheme } from '@mui/material/styles';
 import { getAdminOrders, getBanner, createBanner, type BannerBackgroundColor } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
+import HomeAdmin from '../components/admin/HomeAdmin';
 
 const PER_PAGE = 10;
 const SAVED_FEEDBACK_MS = 1500;
@@ -36,6 +37,7 @@ const AdminTools: React.FC = () => {
   const savedBannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [bannerOpen, setBannerOpen] = useState(false);
+  const [homeAdminOpen, setHomeAdminOpen] = useState(false);
   const [hideDelivered, setHideDelivered] = useState(false);
   const [dateOrder, setDateOrder] = useState<'asc' | 'desc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -139,7 +141,7 @@ const AdminTools: React.FC = () => {
     width: '100%',
     py: 1.5,
     px: 2,
-    backgroundColor: colors.primary.light,
+    backgroundColor: theme.palette.background.paper,
     cursor: 'pointer',
     border: 'none',
     borderRadius: 0,
@@ -161,6 +163,20 @@ const AdminTools: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Admin Tools
       </Typography>
+
+      <Box sx={{ mt: 1, border: '1px solid', borderColor: 'divider' }}>
+        <Box
+          component="button"
+          onClick={() => setHomeAdminOpen((o) => !o)}
+          sx={collapsibleHeaderSx}
+        >
+          <Typography>Home Page</Typography>
+          <ExpandMoreIcon sx={{ transform: homeAdminOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+        </Box>
+        <Collapse in={homeAdminOpen}>
+          <HomeAdmin />
+        </Collapse>
+      </Box>
 
       {/* All Orders */}
       <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
@@ -294,7 +310,7 @@ const AdminTools: React.FC = () => {
       </Box>
 
       {/* Banner */}
-      <Box sx={{ mt: 1, border: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
         <Box
           component="button"
           onClick={() => setBannerOpen((o) => !o)}
@@ -382,6 +398,7 @@ const AdminTools: React.FC = () => {
           </Box>
         </Collapse>
       </Box>
+
     </Box>
   );
 };
