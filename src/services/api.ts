@@ -15,6 +15,15 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Instance default Content-Type is application/json; Flask won't populate request.form unless this is unset for FormData.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      const h = config.headers as { delete?: (key: string) => void } & Record<string, unknown>;
+      if (typeof h.delete === 'function') {
+        h.delete('Content-Type');
+      } else {
+        delete h['Content-Type'];
+      }
+    }
     return config;
   },
   (error) => {
@@ -44,6 +53,12 @@ export interface CreateAccount {
 export interface ProductType {
   id: number;
   name: string;
+}
+
+export interface CatalogColor {
+  id: number;
+  name: string;
+  hex: string;
 }
 
 export interface ProductCard {
@@ -137,8 +152,18 @@ export const getProducts = async (): Promise<ProductCard[]> => {
   return response.data;
 };
 
+export const createProduct = async (formData: FormData): Promise<ProductCard> => {
+  const response = await api.post<ProductCard>('/products/create', formData);
+  return response.data;
+};
+
 export const getProductTypes = async (): Promise<ProductType[]> => {
   const response = await api.get<ProductType[]>('/product-types');
+  return response.data;
+};
+
+export const getCatalogColors = async (): Promise<CatalogColor[]> => {
+  const response = await api.get<CatalogColor[]>('/colors');
   return response.data;
 };
 
@@ -205,6 +230,12 @@ export const saveFooterPictures = async (slots: (FooterPictureItem | { file: Fil
   return response.data;
 };
 
+export interface ProductColorOption {
+  id: number;
+  name: string;
+  hex: string;
+}
+
 export interface ProductWithImages {
   id: number;
   product_type_id: number;
@@ -217,6 +248,8 @@ export interface ProductWithImages {
   created_at: string;
   image_urls: string[];
   image_ids?: number[];
+  image_color_ids?: number[];
+  product_colors?: ProductColorOption[];
 }
 
 export const getProductById = async (productId: number): Promise<ProductWithImages> => {
@@ -230,22 +263,6 @@ export const updateProduct = async (
 ): Promise<ProductWithImages> => {
   const response = await api.patch<ProductWithImages>(`/product/${productId}`, data);
   return response.data;
-};
-
-export const addProductImage = async (productId: number, file: File): Promise<ProductWithImages> => {
-  const token = localStorage.getItem('authToken');
-  const fd = new FormData();
-  fd.append('image', file);
-  const res = await fetch(`${API_BASE_URL}/product/${productId}/images`, {
-    method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: fd,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error || 'Failed to add image');
-  }
-  return res.json();
 };
 
 export const reorderProductImages = async (productId: number, order: number[]): Promise<ProductWithImages> => {

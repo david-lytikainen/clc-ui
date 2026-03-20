@@ -5,29 +5,45 @@ import {
   Button,
   CardMedia,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
   IconButton,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { getProductById, ProductWithImages, createCheckoutSession, syncCart, updateProduct, addProductImage, reorderProductImages, deleteProductImage, updateAllergicToCinnamon, getCurrentUser } from '../services/api';
+import {
+  getProductById,
+  ProductWithImages,
+  createCheckoutSession,
+  syncCart,
+  updateProduct,
+  reorderProductImages,
+  deleteProductImage,
+  updateAllergicToCinnamon,
+  getCurrentUser,
+} from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
 
-type DraftValues = { title: string; description: string; price: string; dimensions: string; color: string };
+type DraftValues = { title: string; description: string; price: string; dimensions: string };
+
+/** Last index in sort order for this color → highest sort_order among matching images. */
+function lastImageIndexForColor(imageColorIds: number[], colorId: number): number {
+  let last = -1;
+  for (let i = 0; i < imageColorIds.length; i++) {
+    if (imageColorIds[i] === colorId) last = i;
+  }
+  return last;
+}
 
 const ProductDetail: React.FC = () => {
   const theme = useTheme();
@@ -41,12 +57,10 @@ const ProductDetail: React.FC = () => {
   const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingAll, setEditingAll] = useState(false);
-  const [draftValues, setDraftValues] = useState<DraftValues>({ title: '', description: '', price: '', dimensions: '', color: '' });
+  const [draftValues, setDraftValues] = useState<DraftValues>({ title: '', description: '', price: '', dimensions: '' });
   const [draftImageIds, setDraftImageIds] = useState<number[]>([]);
   const [savingAll, setSavingAll] = useState(false);
-  const [addingImage, setAddingImage] = useState(false);
-  const [pendingImageFiles, setPendingImageFiles] = useState<File[] | null>(null);
-  const addImageInputRef = React.useRef<HTMLInputElement>(null);
+  const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!productId) return;
@@ -66,12 +80,39 @@ const ProductDetail: React.FC = () => {
   }, [productId]);
 
   useEffect(() => {
-    if (product && product.image_urls && product.image_urls.length > 0) {
-      setSelectedImage(product.image_urls[0]);
-    } else {
+    setSelectedColorId(null);
+  }, [productId]);
+
+  useEffect(() => {
+    if (!product?.image_urls?.length) {
       setSelectedImage(null);
+      return;
     }
-  }, [product]);
+    setSelectedImage((prev) =>
+      prev && product.image_urls!.includes(prev) ? prev : product.image_urls![0]
+    );
+  }, [product?.id, product?.image_urls]);
+
+  const toggleButtonSelectedSx = {
+    '& .MuiToggleButton-root.Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      color: '#fff',
+      '&:hover': { backgroundColor: theme.palette.primary.light, opacity: 0.9 },
+    },
+  };
+
+  const handleColorToggle = (_: React.MouseEvent<HTMLElement>, value: number | null) => {
+    if (editingAll || !product?.image_urls?.length) return;
+    const cids = product.image_color_ids ?? [];
+    if (value == null) {
+      setSelectedColorId(null);
+      setSelectedImage(product.image_urls[0]);
+      return;
+    }
+    setSelectedColorId(value);
+    const idx = lastImageIndexForColor(cids, value);
+    if (idx >= 0) setSelectedImage(product.image_urls[idx]);
+  };
 
   const startEditAll = () => {
     if (!product) return;
@@ -80,7 +121,6 @@ const ProductDetail: React.FC = () => {
       description: String(product.description ?? ''),
       price: String(product.price ?? ''),
       dimensions: String(product.dimensions ?? ''),
-      color: String(product.color ?? ''),
     });
     setDraftImageIds(product.image_ids ? [...product.image_ids] : []);
     setEditingAll(true);
@@ -147,8 +187,7 @@ const ProductDetail: React.FC = () => {
         description: draftValues.description,
         price: num,
         dimensions: draftValues.dimensions,
-        color: draftValues.color,
-      } as any);
+      });
       const originalIds = product.image_ids ?? [];
       const deletedIds = originalIds.filter((id) => !draftImageIds.includes(id));
       for (const id of deletedIds) {
@@ -167,37 +206,6 @@ const ProductDetail: React.FC = () => {
       alert('Failed to update');
     } finally {
       setSavingAll(false);
-    }
-  };
-
-  const handleAddImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    if (files.length === 0 || !product) return;
-    setPendingImageFiles(files);
-    if (addImageInputRef.current) addImageInputRef.current.value = '';
-  };
-
-  const cancelPendingImages = () => {
-    setPendingImageFiles(null);
-    if (addImageInputRef.current) addImageInputRef.current.value = '';
-  };
-
-  const confirmUploadImages = async () => {
-    if (!product || !pendingImageFiles?.length) return;
-    setAddingImage(true);
-    try {
-      let updated: ProductWithImages = product;
-      for (const file of pendingImageFiles) {
-        updated = await addProductImage(product.id, file);
-      }
-      setProduct(updated);
-      if (updated.image_urls?.length) setSelectedImage(updated.image_urls[updated.image_urls.length - 1]);
-      setPendingImageFiles(null);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to add image(s)');
-    } finally {
-      setAddingImage(false);
     }
   };
 
@@ -254,20 +262,6 @@ const ProductDetail: React.FC = () => {
         onAnswer={handleCinnamonAnswer}
         loading={creatingStripeCheckout}
       />
-      <Dialog open={pendingImageFiles !== null} onClose={cancelPendingImages}>
-        <DialogTitle>Upload images</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to upload {pendingImageFiles?.length ?? 0} image{pendingImageFiles?.length === 1 ? '' : 's'}?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelPendingImages} disabled={addingImage}>Cancel</Button>
-          <Button variant="contained" onClick={confirmUploadImages} disabled={addingImage}>
-            {addingImage ? 'Uploading…' : 'Upload'}
-          </Button>
-        </DialogActions>
-      </Dialog>
       <Grid container>
         <Grid item xs={2} sm={2} md={1} sx={{ display: { sm: 'block' } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', pt: 2 }}>
@@ -323,50 +317,20 @@ const ProductDetail: React.FC = () => {
                   key={i}
                   component="img"
                   src={url}
-                  onClick={() => setSelectedImage(url)}
+                  onClick={() => {
+                    setSelectedColorId(null);
+                    setSelectedImage(url);
+                  }}
                   sx={{
                     width: 64,
                     height: 64,
                     objectFit: 'cover',
                     cursor: 'pointer',
                     borderRadius: 1,
-                    border: (theme) => selectedImage === url ? `2px solid ${theme.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)',
+                    border: (t) => (selectedImage === url ? `2px solid ${t.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)'),
                   }}
                 />
               ))
-            )}
-            {isAdmin() && editingAll && (
-              <>
-                <input
-                  ref={addImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleAddImage}
-                  style={{ display: 'none' }}
-                />
-                <Box
-                  onClick={() => !addingImage && addImageInputRef.current?.click()}
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 1,
-                    border: '1px solid rgba(0,0,0,0.08)',
-                    bgcolor: 'action.hover',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: addingImage ? 'default' : 'pointer',
-                    '&:hover': addingImage ? {} : { bgcolor: 'action.selected' },
-                  }}
-                >
-                  {addingImage ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    <AddIcon sx={{ color: 'text.secondary', fontSize: 28 }} />
-                  )}
-                </Box>
-              </>
             )}
           </Box>
         </Grid>
@@ -506,17 +470,43 @@ const ProductDetail: React.FC = () => {
                   <Typography variant="body2"><strong>Dimensions:</strong> {product.dimensions ?? '—'}</Typography>
                 )}
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                {editingAll ? (
-                  <TextField
-                    size="small"
-                    placeholder="Color"
-                    value={draftValues.color}
-                    onChange={(e) => setDraftValues((prev) => ({ ...prev, color: e.target.value }))}
-                    sx={{ maxWidth: 200 }}
-                  />
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 0.5, flexWrap: 'wrap' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, pt: 0.5 }}>
+                  Color:
+                </Typography>
+                {!product.product_colors?.length ? (
+                  <Typography variant="body2" color="text.secondary">
+                    —
+                  </Typography>
                 ) : (
-                  <Typography variant="body2"><strong>Color:</strong> {product.color ?? '—'}</Typography>
+                  <ToggleButtonGroup
+                    value={selectedColorId}
+                    exclusive
+                    disabled={editingAll}
+                    onChange={handleColorToggle}
+                    size="small"
+                    sx={toggleButtonSelectedSx}
+                  >
+                    {product.product_colors.map((c) => (
+                      <ToggleButton key={c.id} value={c.id} aria-label={c.name} sx={{ textTransform: 'none' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 0.25 }}>
+                          <Box
+                            sx={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: 0.5,
+                              flexShrink: 0,
+                              bgcolor: c.hex || '#888',
+                              border: '1px solid rgba(0,0,0,0.2)',
+                            }}
+                          />
+                          <Typography component="span" variant="body2">
+                            {c.name}
+                          </Typography>
+                        </Box>
+                      </ToggleButton>
+                    ))}
+                  </ToggleButtonGroup>
                 )}
               </Box>
             </Box>

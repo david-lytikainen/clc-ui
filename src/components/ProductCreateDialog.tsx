@@ -14,7 +14,6 @@ import {
   Box,
   List,
   ListItem,
-  ListItemText,
   IconButton,
   Typography,
 } from '@mui/material';
@@ -22,8 +21,11 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { getProductTypes } from '../services/api';
-import type { ProductType } from '../services/api';
+import axios from 'axios';
+import { getProductTypes, getCatalogColors, createProduct } from '../services/api';
+import type { ProductType, CatalogColor } from '../services/api';
+
+type ImageColorSelection = number | '';
 
 type Props = {
   open: boolean;
@@ -39,10 +41,11 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     description: '',
     product_type_id: '',
     dimensions: '',
-    color: '',
   });
   const [formFiles, setFormFiles] = useState<File[]>([]);
+  const [imageColorIds, setImageColorIds] = useState<ImageColorSelection[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+  const [catalogColors, setCatalogColors] = useState<CatalogColor[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,10 +53,13 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     let mounted = true;
     (async () => {
       try {
-        const pts = await getProductTypes();
-        if (mounted) setProductTypes(pts || []);
+        const [pts, cols] = await Promise.all([getProductTypes(), getCatalogColors()]);
+        if (mounted) {
+          setProductTypes(pts || []);
+          setCatalogColors(cols || []);
+        }
       } catch (err) {
-        console.error('Failed to load product types', err);
+        console.error('Failed to load product types or colors', err);
       }
     })();
     return () => {
@@ -68,14 +74,21 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     setFormFiles(files);
+    setImageColorIds(files.map(() => ''));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const moveFile = (index: number, direction: 'up' | 'down') => {
+    const j = direction === 'up' ? index - 1 : index + 1;
     setFormFiles((prev) => {
+      if (j < 0 || j >= prev.length) return prev;
       const next = [...prev];
-      const j = direction === 'up' ? index - 1 : index + 1;
-      if (j < 0 || j >= next.length) return prev;
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+    setImageColorIds((prev) => {
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
       [next[index], next[j]] = [next[j], next[index]];
       return next;
     });
@@ -83,10 +96,28 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
 
   const removeFile = (index: number) => {
     setFormFiles((prev) => prev.filter((_, i) => i !== index));
+    setImageColorIds((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const setColorAtIndex = (index: number, value: ImageColorSelection) => {
+    setImageColorIds((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const missingImageColors =
+    formFiles.length > 0 &&
+    (imageColorIds.length !== formFiles.length || imageColorIds.some((id) => id === '' || id == null));
+
   const handleCreateSubmit = async () => {
-    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions || !form.color) return alert('Please provide all required fields');
+    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions) {
+      return alert('Please provide all required fields');
+    }
+    if (missingImageColors) {
+      return alert('Select a catalog color for each uploaded image');
+    }
     setCreating(true);
     try {
       const fd = new FormData();
@@ -96,23 +127,26 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       fd.append('description', form.description);
       fd.append('product_type_id', String(form.product_type_id || '1'));
       fd.append('dimensions', form.dimensions);
-      fd.append('color', form.color);
       formFiles.forEach((f) => fd.append('images', f));
+      imageColorIds.forEach((cid) => {
+        if (typeof cid === 'number') fd.append('image_color_ids', String(cid));
+      });
 
-      const res = await fetch('/api/products/create', { method: 'POST', body: fd });
-      if (res.ok) {
-        const created = await res.json();
-        onCreated && onCreated(created);
-        onClose();
-        setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '', color: '' });
-        setFormFiles([]);
-      } else {
-        console.error('Failed to create product', await res.text());
-        alert('Failed to create product');
-      }
+      const created = await createProduct(fd);
+      onCreated && onCreated(created);
+      onClose();
+      setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '' });
+      setFormFiles([]);
+      setImageColorIds([]);
     } catch (err) {
       console.error(err);
-      alert('Error creating product');
+      if (axios.isAxiosError(err) && err.response?.data) {
+        const d = err.response.data as { error?: string; missing?: string[]; message?: string };
+        const missing = d.missing?.length ? ` (${d.missing.join(', ')})` : '';
+        alert((d.error || d.message || 'Error creating product') + missing);
+      } else {
+        alert('Error creating product');
+      }
     } finally {
       setCreating(false);
     }
@@ -151,7 +185,6 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
             </Select>
           </FormControl>
           <TextField label="Dimensions" value={form.dimensions} onChange={handleFormChange('dimensions')} fullWidth />
-          <TextField label="Color" value={form.color} onChange={handleFormChange('color')} fullWidth />
 
           <Box>
             <input
@@ -181,6 +214,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
                   {formFiles.map((file, index) => (
                     <ListItem
                       key={`${file.name}-${index}`}
+                      alignItems="flex-start"
                       secondaryAction={
                         <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                           <IconButton
@@ -204,12 +238,45 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
                           </IconButton>
                         </Box>
                       }
+                      sx={{ pr: 16, display: 'block' }}
                     >
-                      <ListItemText
-                        primary={file.name}
-                        secondary={index === 0 ? 'Primary' : `#${index + 1}`}
-                        primaryTypographyProps={{ noWrap: true }}
-                      />
+                      <Typography variant="body2" noWrap sx={{ pr: 6 }}>
+                        {file.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.25 }}>
+                        {index === 0 ? 'Primary' : `#${index + 1}`}
+                      </Typography>
+                      <FormControl fullWidth size="small" sx={{ mt: 1, maxWidth: 'calc(100% - 48px)' }}>
+                        <InputLabel id={`image-color-label-${index}`}>Color</InputLabel>
+                        <Select
+                          labelId={`image-color-label-${index}`}
+                          label="Image color"
+                          value={imageColorIds[index] === '' ? '' : String(imageColorIds[index])}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setColorAtIndex(index, v === '' ? '' : Number(v));
+                          }}
+                          required
+                        >
+                          {catalogColors.map((c) => (
+                            <MenuItem key={c.id} value={String(c.id)}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box
+                                  sx={{
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: 0.5,
+                                    flexShrink: 0,
+                                    bgcolor: c.hex || '#888',
+                                    border: '1px solid rgba(0,0,0,0.15)',
+                                  }}
+                                />
+                                {c.name}
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </ListItem>
                   ))}
                 </List>
@@ -220,7 +287,13 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={creating}>Cancel</Button>
-        <Button variant="contained" onClick={handleCreateSubmit} disabled={creating}>{creating ? 'Creating…' : 'Create'}</Button>
+        <Button
+          variant="contained"
+          onClick={handleCreateSubmit}
+          disabled={creating || missingImageColors}
+        >
+          {creating ? 'Creating…' : 'Create'}
+        </Button>
       </DialogActions>
     </Dialog>
   );
