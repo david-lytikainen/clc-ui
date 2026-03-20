@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = () => {
     try {
       localStorage.removeItem('authToken');
+      localStorage.removeItem('cart');
     } catch (e) {
       // noop
     }

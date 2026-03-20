@@ -14,7 +14,7 @@ const OrderDetail: React.FC = () => {
   const theme = useTheme();
   const { orderNumber } = useParams<{ orderNumber: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const [data, setData] = useState<{ order_number: string; orders: Order[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -26,7 +26,11 @@ const OrderDetail: React.FC = () => {
   const [statusSelect, setStatusSelect] = useState('');
 
   useEffect(() => {
-    if (!orderNumber || !isAuthenticated) {
+      localStorage.removeItem('cart');
+  }, [orderNumber]);
+
+  useEffect(() => {
+    if (!orderNumber) {
       setLoading(false);
       return;
     }
@@ -42,7 +46,7 @@ const OrderDetail: React.FC = () => {
       })
       .catch((err) => setError(err?.response?.data?.error || 'Order not found'))
       .finally(() => setLoading(false));
-  }, [orderNumber, isAuthenticated, isAdmin]);
+  }, [orderNumber, isAdmin]);
 
   useEffect(() => () => {
     if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
@@ -89,14 +93,6 @@ const OrderDetail: React.FC = () => {
       })
       .finally(() => setSavingField(null));
   };
-
-  if (!isAuthenticated) {
-    return (
-      <Box sx={{ p: 4 }}>
-        <Typography>Please sign in to view your order.</Typography>
-      </Box>
-    );
-  }
 
   if (loading) {
     return (
