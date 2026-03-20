@@ -184,7 +184,14 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
               ))}
             </Select>
           </FormControl>
-          <TextField label="Dimensions" value={form.dimensions} onChange={handleFormChange('dimensions')} fullWidth />
+          <TextField
+            label="Product Details"
+            value={form.dimensions}
+            onChange={handleFormChange('dimensions')}
+            fullWidth
+            multiline
+            rows={3}
+          />
 
           <Box>
             <input
