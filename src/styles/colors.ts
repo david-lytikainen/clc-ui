@@ -18,15 +18,15 @@ export const colors = {
     dark: '#9A4D01',      // Darker shade
   },
   secondary: {
-    main: '#908846',      // Green - olive green
-    light: '#A8A066',     // Lighter shade
+    main: '#ECCD89',      // gold - 
+    light: '#ffda87',     // Lighter shade
     dark: '#6F6B35',      // Darker shade
   },
   
   // Background Colors
   background: {
     default: '#EFEBD8',   // Base - warm beige background
-    base2: '#fcf8e5',     // Base2 - lighter version
+    base2: '#fff',     // Base2 - lighter version
     white: '#FFFFFF',     // Pure white option
   },
   

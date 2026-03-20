@@ -8,7 +8,7 @@ type ProductCardProps = {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
   return (
-    <Card sx={{ '&:hover': { transform: 'none' }, border: 1, borderColor: 'secondary.main', borderRadius: 0 }}>
+    <Card sx={{ '&:hover': { transform: 'none' }, border: .5, borderColor: 'secondary.light', borderRadius: 0 }}>
       <CardActionArea
         onClick={onClick}
         sx={{
@@ -21,7 +21,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
         <CardContent
           sx={{
-            backgroundColor: 'background.default',
+            backgroundColor: 'background.paper',
             textAlign: 'center', py: 1
           }}
         >

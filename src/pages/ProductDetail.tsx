@@ -8,8 +8,9 @@ import {
   Grid,
   IconButton,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
+  FormControl,
+  Select,
+  MenuItem,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -117,19 +118,10 @@ const ProductDetail: React.FC = () => {
     );
   }, [product?.id, product?.image_urls]);
 
-  const toggleButtonSelectedSx = {
-    '& .MuiToggleButton-root.Mui-selected': {
-      backgroundColor: theme.palette.primary.light,
-      color: '#fff',
-      '&:hover': { backgroundColor: theme.palette.primary.light, opacity: 0.9 },
-    },
-  };
-
-  const handleColorToggle = (_: React.MouseEvent<HTMLElement>, value: number | null) => {
+  const handleColorSelect = (value: number) => {
     if (editingAll || !product?.image_urls?.length) return;
-    const cids = product.image_color_ids ?? [];
-    if (value == null) return;
     setSelectedColorId(value);
+    const cids = product.image_color_ids ?? [];
     const idx = lastImageIndexForColor(cids, value);
     setSelectedImage(idx >= 0 ? product.image_urls[idx] : product.image_urls[0]);
   };
@@ -431,212 +423,222 @@ const ProductDetail: React.FC = () => {
               </Box>
             )}
 
-            {/* Title */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-              {editingAll ? (
-                <TextField
-                  size="small"
-                  value={draftValues.title}
-                  onChange={(e) => setDraftValues((prev) => ({ ...prev, title: e.target.value }))}
-                  fullWidth
-                  sx={{ maxWidth: 400 }}
-                  autoFocus
-                />
-              ) : (
-                <Typography variant="h6">{product.title}</Typography>
-              )}
-            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                {/* Title */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                  {editingAll ? (
+                    <TextField
+                      size="small"
+                      value={draftValues.title}
+                      onChange={(e) => setDraftValues((prev) => ({ ...prev, title: e.target.value }))}
+                      fullWidth
+                      sx={{ maxWidth: 400 }}
+                      autoFocus
+                    />
+                  ) : (
+                    <Typography variant="h4">{product.title}</Typography>
+                  )}
+                </Box>
 
-            {/* Description */}
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
-              {editingAll ? (
-                <TextField
-                  size="small"
-                  value={draftValues.description}
-                  onChange={(e) => setDraftValues((prev) => ({ ...prev, description: e.target.value }))}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  sx={{ maxWidth: 500 }}
-                />
-              ) : (
-                <Typography variant="subtitle1">{product.description ?? '—'}</Typography>
-              )}
-            </Box>
+                {/* Price */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
+                  {editingAll ? (
+                    <TextField
+                      size="small"
+                      type="number"
+                      inputProps={{ step: '0.01', min: 0 }}
+                      value={draftValues.price}
+                      onChange={(e) => setDraftValues((prev) => ({ ...prev, price: e.target.value }))}
+                      sx={{ maxWidth: 120 }}
+                    />
+                  ) : (
+                    <Typography sx={{ mt: 1, fontSize: '1.2em' }}>
+                      <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
+                    </Typography>
+                  )}
+                </Box>
 
-            {/* Price */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-              {editingAll ? (
-                <TextField
-                  size="small"
-                  type="number"
-                  inputProps={{ step: '0.01', min: 0 }}
-                  value={draftValues.price}
-                  onChange={(e) => setDraftValues((prev) => ({ ...prev, price: e.target.value }))}
-                  sx={{ maxWidth: 120 }}
-                />
-              ) : (
-                <Typography sx={{ mt: 1 }}>
-                  <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
-                </Typography>
-              )}
-            </Box>
+                {/* Color */}
+                <Box sx={{ mt: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 0.5, flexWrap: 'wrap' }}>
+                    {!product.product_colors?.length ? (
+                      <Typography variant="body2" color="text.secondary">
+                        —
+                      </Typography>
+                    ) : (
+                      <FormControl size="small" sx={{ minWidth: 240 }}>
+                        <Select
+                          value={selectedColorId ?? product.product_colors[0].id}
+                          disabled={editingAll}
+                          onChange={(e) => handleColorSelect(Number(e.target.value))}
+                          sx={{ textTransform: 'none' }}
+                        >
+                          {product.product_colors.map((c) => (
+                            <MenuItem key={c.id} value={c.id}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                <Box
+                                  sx={{
+                                    width: 14,
+                                    height: 14,
+                                    borderRadius: 0.5,
+                                    flexShrink: 0,
+                                    bgcolor: c.hex || '#888',
+                                    border: '1px solid rgba(0,0,0,0.2)',
+                                    fontSize: '1.2rem'
+                                  }}
+                                />
+                                <Typography component="span" variant="body2" sx={{ fontSize: '1em' }}>
+                                  {c.name}
+                                </Typography>
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Box>
+                </Box>
 
-            {/* Dimensions & Color */}
-            <Box sx={{ mt: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                {editingAll ? (
-                  <TextField
-                    size="small"
-                    placeholder="Dimensions"
-                    value={draftValues.dimensions}
-                    onChange={(e) => setDraftValues((prev) => ({ ...prev, dimensions: e.target.value }))}
-                    sx={{ maxWidth: 200 }}
-                  />
-                ) : (
-                  <Typography variant="body2"><strong>Dimensions:</strong> {product.dimensions ?? '—'}</Typography>
-                )}
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 0.5, flexWrap: 'wrap' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, pt: 0.5 }}>
-                  Color:
-                </Typography>
-                {!product.product_colors?.length ? (
-                  <Typography variant="body2" color="text.secondary">
-                    —
-                  </Typography>
-                ) : (
-                  <ToggleButtonGroup
-                    value={selectedColorId}
-                    exclusive
-                    disabled={editingAll}
-                    onChange={handleColorToggle}
-                    size="small"
-                    sx={toggleButtonSelectedSx}
+                {/* Description */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 2 }}>
+                  {editingAll ? (
+                    <TextField
+                      size="small"
+                      value={draftValues.description}
+                      onChange={(e) => setDraftValues((prev) => ({ ...prev, description: e.target.value }))}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      sx={{ maxWidth: 500 }}
+                    />
+                  ) : (
+                    <Typography variant="subtitle1">{product.description ?? '—'}</Typography>
+                  )}
+                </Box>
+
+                {/* Product Details */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
+                  {editingAll ? (
+                    <TextField
+                      size="small"
+                      placeholder="Dimensions"
+                      value={draftValues.dimensions}
+                      onChange={(e) => setDraftValues((prev) => ({ ...prev, dimensions: e.target.value }))}
+                      sx={{ maxWidth: 200 }}
+                    />
+                  ) : (
+                    <Typography variant="body2" sx={{ fontSize: '1em' }}><strong>Product Details:</strong> {product.dimensions ?? '—'}</Typography>
+                  )}
+                </Box>
+
+              </Grid>
+              <Grid item md={1}></Grid>
+              <Grid item xs={12} md={5}>
+                <Box sx={{ mt: 8 }}>
+                  <Button type="button" variant="contained"
+                    size='large'
+                      onClick={async () => {
+                        if (adding) return;
+                        const cid = resolveCheckoutColorId(product, selectedColorId);
+                        if (cid == null) {
+                          alert('This product has no color for the cart. Add photos with colors first.');
+                          return;
+                        }
+                        const colorMeta = product.product_colors?.find((c) => c.id === cid);
+                        setAdding(true);
+                        try {
+                          const item = {
+                            id: `${product.id}-${cid}`,
+                            product_id: product.id,
+                            product_title: product.title,
+                            image_url: firstImageUrlForColor(product, cid),
+                            quantity: 1,
+                            price_cents: Math.round(product.price * 100),
+                            color_id: cid,
+                            color_name: colorMeta?.name,
+                            color_hex: colorMeta?.hex,
+                          };
+
+                          const raw = localStorage.getItem('cart');
+                          let cart: any = { items: [] };
+                          if (raw) {
+                            try { const parsed = JSON.parse(raw); cart.items = parsed.items || parsed || []; } catch (e) { cart.items = []; }
+                          }
+                          const existing = cart.items.find((i: any) => i.product_id === item.product_id && i.color_id === cid);
+                          if (existing) existing.quantity = (existing.quantity || 0) + 1;
+                          else cart.items.unshift(item);
+                          localStorage.setItem('cart', JSON.stringify(cart));
+                          window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: cart.items } }));
+
+                          if (isAuthenticated) {
+                            try { await syncCart(cart.items); } catch (e) { console.warn('Cart sync failed', e); }
+                          }
+                        } finally { setAdding(false); }
+                      }}
+                      sx={{
+                      display: 'flex', flexDirection: 'column', height: '50px', width: '150px',
+                      backgroundColor: theme.palette.info.main, color: colors.background.white,
+                      textTransform: 'none',
+                      fontSize: '1.1em',
+                      '&:hover': {
+                        backgroundColor: theme.palette.info.dark,
+                      },
+                      }}
                   >
-                    {product.product_colors.map((c) => (
-                      <ToggleButton key={c.id} value={c.id} aria-label={c.name} sx={{ textTransform: 'none' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 0.25 }}>
-                          <Box
-                            sx={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: 0.5,
-                              flexShrink: 0,
-                              bgcolor: c.hex || '#888',
-                              border: '1px solid rgba(0,0,0,0.2)',
-                            }}
-                          />
-                          <Typography component="span" variant="body2">
-                            {c.name}
-                          </Typography>
-                        </Box>
-                      </ToggleButton>
-                    ))}
-                  </ToggleButtonGroup>
-                )}
-              </Box>
-            </Box>
-            <Box sx={{ mt: 4 }}>
-              <Button type="button" variant="contained"
-                size='large'
-                  onClick={async () => {
-                    if (adding) return;
-                    const cid = resolveCheckoutColorId(product, selectedColorId);
-                    if (cid == null) {
-                      alert('This product has no color for the cart. Add photos with colors first.');
-                      return;
-                    }
-                    const colorMeta = product.product_colors?.find((c) => c.id === cid);
-                    setAdding(true);
-                    try {
-                      const item = {
-                        id: `${product.id}-${cid}`,
-                        product_id: product.id,
-                        product_title: product.title,
-                        image_url: firstImageUrlForColor(product, cid),
-                        quantity: 1,
-                        price_cents: Math.round(product.price * 100),
-                        color_id: cid,
-                        color_name: colorMeta?.name,
-                        color_hex: colorMeta?.hex,
-                      };
-
-                      const raw = localStorage.getItem('cart');
-                      let cart: any = { items: [] };
-                      if (raw) {
-                        try { const parsed = JSON.parse(raw); cart.items = parsed.items || parsed || []; } catch (e) { cart.items = []; }
+                      {adding ? 'Adding...' : 'Add to Cart'}
+                  </Button>
+                  <Button type="button" variant="contained"
+                    sx={{
+                      mt: 1, display: 'flex', flexDirection: 'column', height: '50px', width: '150px',
+                      backgroundColor: theme.palette.primary.main, color: colors.background.white,
+                      textTransform: 'none', 
+                      fontSize: '1.1em',
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={async () => {
+                      if (!product || !product.stripe_price_id) {
+                        alert('No price configured for this product');
+                        return;
                       }
-                      const existing = cart.items.find((i: any) => i.product_id === item.product_id && i.color_id === cid);
-                      if (existing) existing.quantity = (existing.quantity || 0) + 1;
-                      else cart.items.unshift(item);
-                      localStorage.setItem('cart', JSON.stringify(cart));
-                      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: cart.items } }));
-
-                      if (isAuthenticated) {
-                        try { await syncCart(cart.items); } catch (e) { console.warn('Cart sync failed', e); }
+                      const cid = resolveCheckoutColorId(product, selectedColorId);
+                      if (cid == null) {
+                        alert('This product has no color for checkout. Add photos with colors first.');
+                        return;
                       }
-                    } finally { setAdding(false); }
-                  }}
-                  sx={{
-                  display: 'flex', flexDirection: 'column', height: '30px', width: '150px',
-                  backgroundColor: theme.palette.info.main, color: colors.background.white,
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: theme.palette.info.dark,
-                  },
-                  }}
-              >
-                  {adding ? 'Adding...' : 'Add to Cart'}
-              </Button>
-              <Button type="button" variant="contained"
-                sx={{
-                  mt: 1, display: 'flex', flexDirection: 'column', height: '30px', width: '150px',
-                  backgroundColor: theme.palette.primary.main, color: colors.background.white,
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={async () => {
-                  if (!product || !product.stripe_price_id) {
-                    alert('No price configured for this product');
-                    return;
-                  }
-                  const cid = resolveCheckoutColorId(product, selectedColorId);
-                  if (cid == null) {
-                    alert('This product has no color for checkout. Add photos with colors first.');
-                    return;
-                  }
-                  const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
-                  if (needCinnamonAnswer) {
-                    setCinnamonModalOpen(true);
-                    return;
-                  }
-                  try {
-                    setCreatingStripeCheckout(true);
-                    const data = await createCheckoutSession(
-                      product.stripe_price_id,
-                      1,
-                      user?.allergic_to_cinnamon ?? undefined,
-                      cid
-                    );
-                    if (data && data.url) window.location.href = data.url;
-                    else {
-                      console.error(data);
-                      alert((data && data.error) || 'Failed to create checkout session');
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert('Network error');
-                  } finally {
-                    setCreatingStripeCheckout(false);
-                  }
-                }}
-              >
-                {creatingStripeCheckout ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : 'Buy Now'}
-              </Button>
-            </Box>
+                      const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
+                      if (needCinnamonAnswer) {
+                        setCinnamonModalOpen(true);
+                        return;
+                      }
+                      try {
+                        setCreatingStripeCheckout(true);
+                        const data = await createCheckoutSession(
+                          product.stripe_price_id,
+                          1,
+                          user?.allergic_to_cinnamon ?? undefined,
+                          cid
+                        );
+                        if (data && data.url) window.location.href = data.url;
+                        else {
+                          console.error(data);
+                          alert((data && data.error) || 'Failed to create checkout session');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert('Network error');
+                      } finally {
+                        setCreatingStripeCheckout(false);
+                      }
+                    }}
+                  >
+                    {creatingStripeCheckout ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : 'Buy Now'}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
           </Box>
         </Grid>
       </Grid>

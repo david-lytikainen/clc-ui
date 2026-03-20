@@ -80,7 +80,7 @@ const Navbar: React.FC = () => {
     <AppBar 
       position="static" 
       sx={{ 
-        backgroundColor: theme.palette.background.default,
+        backgroundColor: theme.palette.background.paper,
         boxShadow: 'none',
         borderBottom: `1px solid ${theme.palette.divider}`,
       }}
