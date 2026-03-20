@@ -1,5 +1,5 @@
 // main react component - parent component?
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useEffect } from 'react';
@@ -17,6 +17,7 @@ import Cart from './pages/Cart';
 import Profile from './pages/Profile';
 import AdminTools from './pages/AdminTools';
 import EmailVerified from './pages/EmailVerified';
+import About from './pages/About';
 
 function App() {
   
@@ -64,8 +65,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/leather-bags" element={<ShopPage />} />
-            <Route path="/wallets" element={<ShopPage />} />
-            <Route path="/accessories" element={<ShopPage />} />
+            <Route path="/wallets-accessories" element={<ShopPage />} />
+            <Route path="/about" element={<About />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/orders" element={<MyOrders />} />
             <Route path="/orders/:orderNumber" element={<OrderDetail />} />

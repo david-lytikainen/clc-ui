@@ -7,18 +7,16 @@ import useProducts from '../hooks/useProducts';
 import { useAuth } from '../context/AuthContext';
 import type { ProductCard as ProductCardType } from '../services/api';
 
-const PATH_TO_TYPE: Record<string, string | null> = {
+const PATH_TO_TYPE: Record<string, string[] | null> = {
   '/shop': null,
-  '/leather-bags': 'Leather Bag',
-  '/wallets': 'Wallet',
-  '/accessories': 'Accessory',
+  '/leather-bags': ['Leather Bag'],
+  '/wallets-accessories': ['Wallet', 'Accessory'],
 };
 
 const PATH_TO_TITLE: Record<string, string> = {
   '/shop': 'Shop All',
   '/leather-bags': 'Bags',
-  '/wallets': 'Wallets',
-  '/accessories': 'Accessories',
+  '/wallets-accessories': 'Wallets & Accessories',
 };
 
 const ShopPage: React.FC = () => {
@@ -32,8 +30,11 @@ const ShopPage: React.FC = () => {
   const title = PATH_TO_TITLE[location.pathname] ?? 'Shop';
 
   const filteredProducts = useMemo(() => {
-    if (!filterType) return products;
-    return products.filter((p: ProductCardType) => p.product_type_name === filterType);
+    if (!filterType?.length) return products;
+    return products.filter(
+      (p: ProductCardType) =>
+        p.product_type_name != null && filterType.includes(p.product_type_name)
+    );
   }, [products, filterType]);
 
   const shopCards = useMemo(() => {

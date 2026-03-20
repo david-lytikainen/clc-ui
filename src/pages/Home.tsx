@@ -121,8 +121,11 @@ const Home: React.FC = () => {
 
       {/* Perfect Gifts – one row, 4 visible, slide with arrows */}
       <Box sx={{ py: 4, px: { xs: 1, sm: 2 } }}>
-        <Typography variant="h4" sx={{ textAlign: 'center', mb: 3 }}>
-          Perfect Gifts from Cinnamon Leather Co
+        <Typography variant="h4" sx={{ textAlign: 'center', mb: 0, pb: 0 }}>
+          Shop the Collection
+        </Typography>
+        <Typography sx={{ textAlign: 'center', pt: 0, mb: 2, fontFamily: 'Brush Script MT', fontWeight: '50', opacity: '70%', fontSize: '1.6em' }}>
+          timeless pieces for everyday life
         </Typography>
         <Box
           sx={{

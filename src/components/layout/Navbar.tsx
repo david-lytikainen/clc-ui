@@ -68,10 +68,10 @@ const Navbar: React.FC = () => {
     };
   }, [isAuthenticated]);
   const navLinks = [
+    { label: 'HOME', path: '/' },
     { label: 'SHOP ALL', path: '/shop' },
-    { label: 'BAGS', path: '/leather-bags' },
-    { label: 'WALLETS', path: '/wallets' },
-    { label: 'ACCESSORIES', path: '/accessories' },
+    { label: 'HANDBAGS', path: '/leather-bags' },
+    { label: 'WALLETS & ACCESSORIES', path: '/wallets-accessories' },
     // { label: 'GIFT CARDS', path: '/gift-cards' },
     { label: 'ABOUT', path: '/about' },
   ];
