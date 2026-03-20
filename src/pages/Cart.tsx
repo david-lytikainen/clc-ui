@@ -283,11 +283,11 @@ const Cart: React.FC = () => {
             disabled={checkoutLoading}
             onClick={async () => {
               if (!items?.length) return;
-              const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
-              if (needCinnamonAnswer) {
-                setCinnamonModalOpen(true);
-                return;
-              }
+              // const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
+              // if (needCinnamonAnswer) {
+              //   setCinnamonModalOpen(true);
+              //   return;
+              // }
               setCheckoutLoading(true);
               setCheckoutError(null);
               try {
@@ -300,7 +300,7 @@ const Cart: React.FC = () => {
                 if (isAuthenticated) await syncCart(items);
                 const { url } = await createCartCheckoutSession(
                   items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, color_id: i.color_id })),
-                  user?.allergic_to_cinnamon ?? undefined
+                  undefined
                 );
                 if (url) window.location.href = url;
               } catch (e: any) {

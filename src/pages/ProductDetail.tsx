@@ -608,17 +608,17 @@ const ProductDetail: React.FC = () => {
                         alert('This product has no color for checkout. Add photos with colors first.');
                         return;
                       }
-                      const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
-                      if (needCinnamonAnswer) {
-                        setCinnamonModalOpen(true);
-                        return;
-                      }
+                      // const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
+                      // if (needCinnamonAnswer) {
+                      //   setCinnamonModalOpen(true);
+                      //   return;
+                      // }
                       try {
                         setCreatingStripeCheckout(true);
                         const data = await createCheckoutSession(
                           product.stripe_price_id,
                           1,
-                          user?.allergic_to_cinnamon ?? undefined,
+                          undefined,
                           cid
                         );
                         if (data && data.url) window.location.href = data.url;
