@@ -10,6 +10,25 @@ import { useTheme } from '@mui/material/styles';
 
 const SAVED_FEEDBACK_MS = 1500;
 
+const formatShippingAddress = (raw?: string | null): string => {
+  if (!raw) return '';
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return raw;
+    const addr = parsed as Record<string, unknown>;
+    const line1 = typeof addr.line1 === 'string' ? addr.line1 : '';
+    const line2 = typeof addr.line2 === 'string' ? addr.line2 : '';
+    const city = typeof addr.city === 'string' ? addr.city : '';
+    const state = typeof addr.state === 'string' ? addr.state : '';
+    const postalCode = typeof addr.postal_code === 'string' ? addr.postal_code : '';
+    const country = typeof addr.country === 'string' ? addr.country : '';
+    const locality = [city, state, postalCode].filter(Boolean).join(', ');
+    return [line1, line2, locality, country].filter(Boolean).join(', ');
+  } catch {
+    return raw;
+  }
+};
+
 const OrderDetail: React.FC = () => {
   const theme = useTheme();
   const { orderNumber } = useParams<{ orderNumber: string }>();
@@ -111,6 +130,7 @@ const OrderDetail: React.FC = () => {
   }
 
   const orders = data.orders;
+  const shippingAddress = formatShippingAddress(orders[0]?.shipping_address);
   const notes: string[] = Array.isArray(orders[0]?.comments) ? orders[0].comments : (orders[0]?.comments ? [orders[0].comments] : []);
 
   return (
@@ -121,6 +141,11 @@ const OrderDetail: React.FC = () => {
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Order #{data.order_number}
       </Typography>
+      {shippingAddress && (
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          Ship to: {shippingAddress}
+        </Typography>
+      )}
       {isAdmin() && orders[0]?.customer_email && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Purchased by: {orders[0].customer_email}

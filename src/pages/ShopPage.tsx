@@ -36,6 +36,22 @@ const ShopPage: React.FC = () => {
     return products.filter((p: ProductCardType) => p.product_type_name === filterType);
   }, [products, filterType]);
 
+  const shopCards = useMemo(() => {
+    const rows: { key: string; product: ProductCardType; imageUrl: string | null }[] = [];
+    for (const p of filteredProducts) {
+      const urls =
+        p.image_urls && p.image_urls.length > 0 ? p.image_urls : p.image_url ? [p.image_url] : [];
+      if (urls.length === 0) {
+        rows.push({ key: String(p.id), product: p, imageUrl: null });
+      } else {
+        urls.forEach((url, i) => {
+          rows.push({ key: `${p.id}-${i}`, product: p, imageUrl: url });
+        });
+      }
+    }
+    return rows;
+  }, [filteredProducts]);
+
   const openCreate = () => setCreateOpen(true);
   const closeCreate = () => setCreateOpen(false);
 
@@ -58,9 +74,12 @@ const ShopPage: React.FC = () => {
       </Box>
 
       <Grid container>
-        {filteredProducts.map((p) => (
-          <Grid key={p.id} item xs={12} sm={6} md={4} lg={3}>
-            <ProductCard product={p} onClick={() => navigate(`/product/${p.id}`)} />
+        {shopCards.map(({ key, product: p, imageUrl }) => (
+          <Grid key={key} item xs={12} sm={6} md={4} lg={3}>
+            <ProductCard
+              product={{ ...p, image_url: imageUrl }}
+              onClick={() => navigate(`/product/${p.id}`)}
+            />
           </Grid>
         ))}
       </Grid>

@@ -11,6 +11,8 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Switch,
+  FormControlLabel,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -74,6 +76,7 @@ const ProductDetail: React.FC = () => {
   const [editingAll, setEditingAll] = useState(false);
   const [draftValues, setDraftValues] = useState<DraftValues>({ title: '', description: '', price: '', dimensions: '' });
   const [draftImageIds, setDraftImageIds] = useState<number[]>([]);
+  const [draftIsActive, setDraftIsActive] = useState<boolean>(true);
   const [savingAll, setSavingAll] = useState(false);
   const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
 
@@ -134,6 +137,7 @@ const ProductDetail: React.FC = () => {
       price: String(product.price ?? ''),
       dimensions: String(product.dimensions ?? ''),
     });
+    setDraftIsActive(Boolean(product.is_active));
     setDraftImageIds(product.image_ids ? [...product.image_ids] : []);
     setEditingAll(true);
   };
@@ -199,6 +203,7 @@ const ProductDetail: React.FC = () => {
         description: draftValues.description,
         price: num,
         dimensions: draftValues.dimensions,
+        is_active: draftIsActive,
       });
       const originalIds = product.image_ids ?? [];
       const deletedIds = originalIds.filter((id) => !draftImageIds.includes(id));
@@ -531,6 +536,20 @@ const ProductDetail: React.FC = () => {
                     <Typography variant="body2" sx={{ fontSize: '1em' }}><strong>Product Details:</strong> {product.dimensions ?? '—'}</Typography>
                   )}
                 </Box>
+
+                {editingAll && (
+                  <Box sx={{ mt: 2 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={draftIsActive}
+                          onChange={(e) => setDraftIsActive(e.target.checked)}
+                        />
+                      }
+                      label="Active"
+                    />
+                  </Box>
+                )}
 
               </Grid>
               <Grid item md={1}></Grid>

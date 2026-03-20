@@ -71,7 +71,8 @@ export interface ProductCard {
   dimensions: string;
   color: string;
   created_at: string;
-  image_url : string;
+  image_url: string | null;
+  image_urls?: string[];
 }
 
 interface AuthResponse {
@@ -149,6 +150,11 @@ export const updateAllergicToCinnamon = async (allergic: boolean): Promise<void>
 
 export const getProducts = async (): Promise<ProductCard[]> => {
   const response = await api.get<ProductCard[]>('/products');
+  return response.data;
+};
+
+export const getInactiveProductsAdmin = async (): Promise<ProductCard[]> => {
+  const response = await api.get<ProductCard[]>('/admin/products/inactive');
   return response.data;
 };
 
@@ -244,6 +250,7 @@ export interface ProductWithImages {
   price: number;
   dimensions: string;
   color: string;
+  is_active: boolean;
   stripe_price_id: string;
   created_at: string;
   image_urls: string[];
@@ -259,7 +266,7 @@ export const getProductById = async (productId: number): Promise<ProductWithImag
 
 export const updateProduct = async (
   productId: number,
-  data: { title?: string; description?: string; price?: number; dimensions?: string; color?: string }
+  data: { title?: string; description?: string; price?: number; dimensions?: string; color?: string; is_active?: boolean }
 ): Promise<ProductWithImages> => {
   const response = await api.patch<ProductWithImages>(`/product/${productId}`, data);
   return response.data;
@@ -333,6 +340,7 @@ export interface Order {
   color_hex?: string | null;
   image_url: string | null;
   tracking_url?: string | null;
+  shipping_address?: string | null;
   comments?: string[];  // notes as array from API
   customer_email?: string | null;
   user_first_name?: string | null;

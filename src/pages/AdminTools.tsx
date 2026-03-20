@@ -6,7 +6,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { getAdminOrders, getBanner, createBanner, type BannerBackgroundColor } from '../services/api';
+import { getAdminOrders, getBanner, createBanner, getInactiveProductsAdmin, updateProduct, type BannerBackgroundColor, type ProductCard } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import HomeAdmin from '../components/admin/HomeAdmin';
@@ -38,9 +38,15 @@ const AdminTools: React.FC = () => {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [bannerOpen, setBannerOpen] = useState(false);
   const [homeAdminOpen, setHomeAdminOpen] = useState(false);
+  const [inactiveProductsOpen, setInactiveProductsOpen] = useState(false);
   const [hideDelivered, setHideDelivered] = useState(false);
   const [dateOrder, setDateOrder] = useState<'asc' | 'desc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [inactiveProducts, setInactiveProducts] = useState<ProductCard[]>([]);
+  const [inactiveProductsLoading, setInactiveProductsLoading] = useState(false);
+  const [inactiveDraftActiveById, setInactiveDraftActiveById] = useState<Record<number, boolean>>({});
+  const [inactiveSavingById, setInactiveSavingById] = useState<Record<number, boolean>>({});
+  const [inactiveSavedById, setInactiveSavedById] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin()) {
@@ -66,6 +72,19 @@ const AdminTools: React.FC = () => {
       })
       .finally(() => setBannerLoading(false));
   }, [isAuthenticated, isAdmin]);
+
+  useEffect(() => {
+    if (!inactiveProductsOpen || !isAuthenticated || !isAdmin()) return;
+    setInactiveProductsLoading(true);
+    getInactiveProductsAdmin()
+      .then((rows) => {
+        setInactiveProducts(rows);
+        const initial: Record<number, boolean> = {};
+        rows.forEach((p) => { initial[p.id] = false; });
+        setInactiveDraftActiveById(initial);
+      })
+      .finally(() => setInactiveProductsLoading(false));
+  }, [inactiveProductsOpen, isAuthenticated, isAdmin]);
 
   useEffect(() => () => {
     if (savedBannerTimeoutRef.current) clearTimeout(savedBannerTimeoutRef.current);
@@ -175,6 +194,101 @@ const AdminTools: React.FC = () => {
         </Box>
         <Collapse in={homeAdminOpen}>
           <HomeAdmin />
+        </Collapse>
+      </Box>
+
+      <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Box
+          component="button"
+          onClick={() => setInactiveProductsOpen((o) => !o)}
+          sx={collapsibleHeaderSx}
+        >
+          <Typography>Inactive Products</Typography>
+          <ExpandMoreIcon sx={{ transform: inactiveProductsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+        </Box>
+        <Collapse in={inactiveProductsOpen}>
+          <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
+            {inactiveProductsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <List sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {inactiveProducts.map((p) => (
+                  <ListItem
+                    key={p.id}
+                    divider
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 2, flexWrap: 'wrap' }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                      {p.image_url ? (
+                        <Box component="img" src={p.image_url} alt={p.title} sx={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 1 }} />
+                      ) : (
+                        <Box sx={{ width: 56, height: 56, borderRadius: 1, bgcolor: 'action.hover' }} />
+                      )}
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>{p.title}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={inactiveDraftActiveById[p.id] ?? false}
+                            onChange={(_, v) => setInactiveDraftActiveById((prev) => ({ ...prev, [p.id]: v }))}
+                            color="primary"
+                          />
+                        }
+                        label="Active"
+                      />
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={inactiveSavingById[p.id]}
+                        onClick={async () => {
+                          setInactiveSavingById((prev) => ({ ...prev, [p.id]: true }));
+                          try {
+                            await updateProduct(p.id, { is_active: Boolean(inactiveDraftActiveById[p.id]) });
+                            setInactiveSavedById((prev) => ({ ...prev, [p.id]: true }));
+                            if (inactiveDraftActiveById[p.id]) {
+                              setInactiveProducts((prev) => prev.filter((row) => row.id !== p.id));
+                            }
+                            setTimeout(() => {
+                              setInactiveSavedById((prev) => ({ ...prev, [p.id]: false }));
+                            }, SAVED_FEEDBACK_MS);
+                          } finally {
+                            setInactiveSavingById((prev) => ({ ...prev, [p.id]: false }));
+                          }
+                        }}
+                        sx={{
+                          minWidth: 72,
+                          height: 40,
+                          transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
+                          ...(inactiveSavedById[p.id]
+                            ? {
+                                backgroundColor: theme.palette.secondary.main,
+                                color: '#fff',
+                                borderColor: theme.palette.secondary.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.main,
+                                  color: '#fff',
+                                  borderColor: theme.palette.secondary.main,
+                                },
+                              }
+                            : {}),
+                        }}
+                      >
+                        <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
+                          <Box component="span" sx={{ position: 'absolute', opacity: inactiveSavedById[p.id] ? 0 : 1, transition: 'opacity 0.25s ease', pointerEvents: 'none' }}>Save</Box>
+                          <Box component="span" sx={{ position: 'absolute', opacity: inactiveSavedById[p.id] ? 1 : 0, transition: 'opacity 0.25s ease', display: 'inline-flex', pointerEvents: 'none' }}>
+                            <CheckIcon sx={{ fontSize: 20 }} />
+                          </Box>
+                        </Box>
+                      </Button>
+                    </Box>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Box>
         </Collapse>
       </Box>
 
