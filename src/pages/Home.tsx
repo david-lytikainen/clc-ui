@@ -210,7 +210,7 @@ const Home: React.FC = () => {
       </Box>
 
       {/* Two side-by-side images (footer pictures) with centered buttons */}
-      <Box sx={{ display: 'flex', flexWrap: 'nowrap', width: '100%' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'nowrap', width: '100%', mt: 8 }}>
         <Box
           sx={{
             width: '50%',
@@ -240,10 +240,17 @@ const Home: React.FC = () => {
           )}
           <Button
             variant="contained"
-            color="primary"
             size="large"
             onClick={() => navigate('/shop')}
-            sx={{ textTransform: 'none', position: 'relative', zIndex: 1 }}
+            sx={{
+              textTransform: 'none',
+              position: 'relative',
+              zIndex: 1,
+              bgcolor: '#fff',
+              color: 'primary.main',
+              boxShadow: 2,
+              '&:hover': { bgcolor: '#f5f5f5', color: 'primary.dark' },
+            }}
           >
             Shop All
           </Button>
@@ -277,10 +284,17 @@ const Home: React.FC = () => {
           )}
           <Button
             variant="contained"
-            color="primary"
             size="large"
             onClick={() => (isAuthenticated ? navigate('/profile') : setSignInModalOpen(true))}
-            sx={{ textTransform: 'none', position: 'relative', zIndex: 1 }}
+            sx={{
+              textTransform: 'none',
+              position: 'relative',
+              zIndex: 1,
+              bgcolor: '#fff',
+              color: 'primary.main',
+              boxShadow: 2,
+              '&:hover': { bgcolor: '#f5f5f5', color: 'primary.dark' },
+            }}
           >
             {isAuthenticated ? 'My Profile' : 'Sign in'}
           </Button>
