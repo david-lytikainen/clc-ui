@@ -45,6 +45,20 @@ function lastImageIndexForColor(imageColorIds: number[], colorId: number): numbe
   return last;
 }
 
+function firstImageUrlForColor(p: ProductWithImages, colorId: number): string | null {
+  const urls = p.image_urls ?? [];
+  const cids = p.image_color_ids ?? [];
+  for (let i = 0; i < urls.length; i++) {
+    if (cids[i] === colorId) return urls[i] ?? null;
+  }
+  return urls[0] ?? null;
+}
+
+function resolveCheckoutColorId(p: ProductWithImages, selectedColorId: number | null): number | null {
+  if (selectedColorId != null) return selectedColorId;
+  return p.product_colors?.[0]?.id ?? p.image_color_ids?.[0] ?? null;
+}
+
 const ProductDetail: React.FC = () => {
   const theme = useTheme();
   const { productId } = useParams();
@@ -71,16 +85,26 @@ const ProductDetail: React.FC = () => {
       .then((res) => {
         setProduct(res);
         setError(null);
+
+        const firstCid = res.product_colors?.[0]?.id ?? res.image_color_ids?.[0] ?? null;
+        setSelectedColorId(firstCid);
+        if (!res.image_urls?.length) {
+          setSelectedImage(null);
+          return;
+        }
+        if (firstCid == null) {
+          setSelectedImage(res.image_urls[0] ?? null);
+          return;
+        }
+        const cids = res.image_color_ids ?? [];
+        const idx = lastImageIndexForColor(cids, firstCid);
+        setSelectedImage(idx >= 0 ? res.image_urls[idx] : res.image_urls[0]);
       })
       .catch((err) => {
         setError(err?.response?.data?.error || err.message || 'Failed to load product');
         setProduct(null);
       })
       .finally(() => setLoading(false));
-  }, [productId]);
-
-  useEffect(() => {
-    setSelectedColorId(null);
   }, [productId]);
 
   useEffect(() => {
@@ -104,14 +128,10 @@ const ProductDetail: React.FC = () => {
   const handleColorToggle = (_: React.MouseEvent<HTMLElement>, value: number | null) => {
     if (editingAll || !product?.image_urls?.length) return;
     const cids = product.image_color_ids ?? [];
-    if (value == null) {
-      setSelectedColorId(null);
-      setSelectedImage(product.image_urls[0]);
-      return;
-    }
+    if (value == null) return;
     setSelectedColorId(value);
     const idx = lastImageIndexForColor(cids, value);
-    if (idx >= 0) setSelectedImage(product.image_urls[idx]);
+    setSelectedImage(idx >= 0 ? product.image_urls[idx] : product.image_urls[0]);
   };
 
   const startEditAll = () => {
@@ -235,6 +255,11 @@ const ProductDetail: React.FC = () => {
 
   const handleCinnamonAnswer = async (allergic: boolean) => {
     if (!product?.stripe_price_id) return;
+    const cid = resolveCheckoutColorId(product, selectedColorId);
+    if (cid == null) {
+      alert('This product has no color for checkout. Add photos with colors first.');
+      return;
+    }
     setCreatingStripeCheckout(true);
     try {
       if (user) {
@@ -242,7 +267,7 @@ const ProductDetail: React.FC = () => {
         const u = await getCurrentUser();
         setUserFromPayload(u);
       }
-      const data = await createCheckoutSession(product.stripe_price_id, 1, allergic);
+      const data = await createCheckoutSession(product.stripe_price_id, 1, allergic, cid);
       setCinnamonModalOpen(false);
       if (data?.url) window.location.href = data.url;
       else alert((data && (data as any).error) || 'Failed to create checkout session');
@@ -318,7 +343,9 @@ const ProductDetail: React.FC = () => {
                   component="img"
                   src={url}
                   onClick={() => {
-                    setSelectedColorId(null);
+                    const firstCid = product.product_colors?.[0]?.id ?? product.image_color_ids?.[0] ?? null;
+                    const nextCid = (product.image_color_ids ?? [])[i] ?? firstCid;
+                    if (nextCid != null) setSelectedColorId(nextCid);
                     setSelectedImage(url);
                   }}
                   sx={{
@@ -515,15 +542,24 @@ const ProductDetail: React.FC = () => {
                 size='large'
                   onClick={async () => {
                     if (adding) return;
+                    const cid = resolveCheckoutColorId(product, selectedColorId);
+                    if (cid == null) {
+                      alert('This product has no color for the cart. Add photos with colors first.');
+                      return;
+                    }
+                    const colorMeta = product.product_colors?.find((c) => c.id === cid);
                     setAdding(true);
                     try {
                       const item = {
-                        id: product.id,
+                        id: `${product.id}-${cid}`,
                         product_id: product.id,
                         product_title: product.title,
-                        image_url: product.image_urls?.[0] || null,
+                        image_url: firstImageUrlForColor(product, cid),
                         quantity: 1,
                         price_cents: Math.round(product.price * 100),
+                        color_id: cid,
+                        color_name: colorMeta?.name,
+                        color_hex: colorMeta?.hex,
                       };
 
                       const raw = localStorage.getItem('cart');
@@ -531,7 +567,7 @@ const ProductDetail: React.FC = () => {
                       if (raw) {
                         try { const parsed = JSON.parse(raw); cart.items = parsed.items || parsed || []; } catch (e) { cart.items = []; }
                       }
-                      const existing = cart.items.find((i: any) => i.product_id === item.product_id);
+                      const existing = cart.items.find((i: any) => i.product_id === item.product_id && i.color_id === cid);
                       if (existing) existing.quantity = (existing.quantity || 0) + 1;
                       else cart.items.unshift(item);
                       localStorage.setItem('cart', JSON.stringify(cart));
@@ -567,6 +603,11 @@ const ProductDetail: React.FC = () => {
                     alert('No price configured for this product');
                     return;
                   }
+                  const cid = resolveCheckoutColorId(product, selectedColorId);
+                  if (cid == null) {
+                    alert('This product has no color for checkout. Add photos with colors first.');
+                    return;
+                  }
                   const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
                   if (needCinnamonAnswer) {
                     setCinnamonModalOpen(true);
@@ -574,7 +615,12 @@ const ProductDetail: React.FC = () => {
                   }
                   try {
                     setCreatingStripeCheckout(true);
-                    const data = await createCheckoutSession(product.stripe_price_id, 1, user?.allergic_to_cinnamon ?? undefined);
+                    const data = await createCheckoutSession(
+                      product.stripe_price_id,
+                      1,
+                      user?.allergic_to_cinnamon ?? undefined,
+                      cid
+                    );
                     if (data && data.url) window.location.href = data.url;
                     else {
                       console.error(data);

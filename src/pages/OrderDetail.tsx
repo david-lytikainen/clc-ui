@@ -240,6 +240,25 @@ const OrderDetail: React.FC = () => {
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
                   {o.product_title}
                 </Typography>
+                {(o.color_name != null || o.color_hex != null) && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
+                    {o.color_hex ? (
+                      <Box
+                        sx={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 0.5,
+                          bgcolor: o.color_hex,
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : null}
+                    <Typography variant="body2" color="text.secondary">
+                      {o.color_name ?? (o.color_id != null ? `Color #${o.color_id}` : '')}
+                    </Typography>
+                  </Box>
+                )}
                 <Typography variant="body2" sx={{ color: '#666' }}>
                   {new Date(o.created_at).toLocaleDateString()}
                 </Typography>

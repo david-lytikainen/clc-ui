@@ -11,12 +11,15 @@ import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
 
 interface CartItem {
-  id: number;
+  id: number | string;
   product_id: number;
   product_title: string;
   image_url?: string;
   quantity: number;
   price_cents: number;
+  color_id: number;
+  color_name?: string;
+  color_hex?: string;
 }
 
 const Cart: React.FC = () => {
@@ -82,9 +85,15 @@ const Cart: React.FC = () => {
         const u = await getCurrentUser();
         setUserFromPayload(u);
       }
+      const missingColor = items.filter((i) => i.color_id == null);
+      if (missingColor.length) {
+        setCheckoutError('Some cart items are missing a color. Remove those lines and add the products again from the shop.');
+        setCheckoutLoading(false);
+        return;
+      }
       if (isAuthenticated) await syncCart(items);
       const { url } = await createCartCheckoutSession(
-        items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+        items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, color_id: i.color_id })),
         allergic
       );
       setCinnamonModalOpen(false);
@@ -157,6 +166,25 @@ const Cart: React.FC = () => {
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
                   {it.product_title}
                 </Typography>
+                {(it.color_name != null || it.color_hex != null) && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
+                    {it.color_hex ? (
+                      <Box
+                        sx={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: 0.5,
+                          bgcolor: it.color_hex,
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : null}
+                    <Typography variant="body2" color="text.secondary">
+                      {it.color_name ?? (it.color_id != null ? `Color #${it.color_id}` : '')}
+                    </Typography>
+                  </Box>
+                )}
                 <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                   <Typography variant="body2">
                     <strong>Qty:</strong> {it.quantity}
@@ -263,9 +291,15 @@ const Cart: React.FC = () => {
               setCheckoutLoading(true);
               setCheckoutError(null);
               try {
+                const missingColor = items.filter((i) => i.color_id == null);
+                if (missingColor.length) {
+                  setCheckoutError('Some cart items are missing a color. Remove those lines and add the products again from the shop.');
+                  setCheckoutLoading(false);
+                  return;
+                }
                 if (isAuthenticated) await syncCart(items);
                 const { url } = await createCartCheckoutSession(
-                  items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+                  items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, color_id: i.color_id })),
                   user?.allergic_to_cinnamon ?? undefined
                 );
                 if (url) window.location.href = url;

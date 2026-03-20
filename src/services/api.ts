@@ -285,17 +285,18 @@ export interface CheckoutSession {
 export const createCheckoutSession = async (
   priceId: string,
   quantity = 1,
-  allergicToCinnamon?: boolean
+  allergicToCinnamon?: boolean,
+  colorId?: number
 ): Promise<CheckoutSession> => {
-  const response = await api.post(`/create-checkout-session/${priceId}`, {
-    quantity,
-    ...(allergicToCinnamon !== undefined && { allergic_to_cinnamon: allergicToCinnamon }),
-  });
+  const body: Record<string, unknown> = { quantity };
+  if (colorId !== undefined) body.color_id = colorId;
+  if (allergicToCinnamon !== undefined) body.allergic_to_cinnamon = allergicToCinnamon;
+  const response = await api.post(`/create-checkout-session/${priceId}`, body);
   return response.data;
 };
 
 export const createCartCheckoutSession = async (
-  items: { product_id: number; quantity: number }[],
+  items: { product_id: number; quantity: number; color_id: number }[],
   allergicToCinnamon?: boolean
 ): Promise<{ id: string; url: string }> => {
   const response = await api.post('/create-cart-checkout-session', {
@@ -319,6 +320,7 @@ export interface Order {
   id: number;
   user_id: number;
   product_id: number;
+  color_id: number;
   session_id: string;
   order_number?: string;
   amount_cents: number;
@@ -327,7 +329,9 @@ export interface Order {
   status: string;
   created_at: string;
   product_title: string;
-  image_url: string;
+  color_name?: string | null;
+  color_hex?: string | null;
+  image_url: string | null;
   tracking_url?: string | null;
   comments?: string[];  // notes as array from API
   customer_email?: string | null;
