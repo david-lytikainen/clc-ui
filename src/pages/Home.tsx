@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
 import SignInModal from '../components/SignInModal';
 
-const BANNER_HEIGHT = 500;
+const BANNER_HEIGHT = 710;
 const PRODUCTS_PER_PAGE = 4;
 const TWO_IMAGE_HEIGHT = 500;
 
@@ -58,11 +58,12 @@ const Home: React.FC = () => {
       {/* Banner */}
       <Box
         sx={{
-          width: '100%',
+          width: '80%',
           height: BANNER_HEIGHT,
           position: 'relative',
           overflow: 'hidden',
           bgcolor: 'background.default',
+          mx: 'auto',
         }}
       >
         {currentPicture?.image_url ? (
