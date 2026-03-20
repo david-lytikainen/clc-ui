@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard';
 import { useAuth } from '../context/AuthContext';
 import SignInModal from '../components/SignInModal';
 
-const BANNER_HEIGHT = 710;
+const BANNER_HEIGHT = 670;
 const PRODUCTS_PER_PAGE = 4;
 const TWO_IMAGE_HEIGHT = 500;
 

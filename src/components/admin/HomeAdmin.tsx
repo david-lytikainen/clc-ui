@@ -297,10 +297,10 @@ const HomeAdmin: React.FC = () => {
 
   return (
     <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, }}>
         Banner Pictures
       </Typography>
-      <Grid container sx={{ mb: 3 }}>
+      <Grid container sx={{ }}>
         <Grid item xs={1} />
         {[0, 1, 2].map((index) => (
           <Grid item xs={3} key={index}>
@@ -432,10 +432,10 @@ const HomeAdmin: React.FC = () => {
         </Button>
       </Box>
 
-      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, mt: 4 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 4 }}>
         Footer Pictures
       </Typography>
-      <Grid container sx={{ mb: 3 }}>
+      <Grid container sx={{ }}>
         <Grid item xs={1} />
         {[0, 1].map((index) => (
           <Grid item xs={3} sm={3} md={3} lg={3} key={index}>
