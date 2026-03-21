@@ -17,6 +17,8 @@ const PATH_TO_TITLE: Record<string, string> = {
   '/shop': 'Shop All',
   '/leather-bags': 'Bags',
   '/wallets-accessories': 'Wallets & Accessories',
+  '/your-favorites': 'Your Favorites',
+  '/our-favorites': 'Our Favorites',
 };
 
 const ShopPage: React.FC = () => {

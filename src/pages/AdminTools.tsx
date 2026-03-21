@@ -10,6 +10,7 @@ import { getAdminOrders, getBanner, createBanner, getInactiveProductsAdmin, upda
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import HomeAdmin from '../components/admin/HomeAdmin';
+import YourFavoritesAdmin from '../components/admin/YourFavoritesAdmin';
 
 const PER_PAGE = 10;
 const SAVED_FEEDBACK_MS = 1500;
@@ -38,6 +39,7 @@ const AdminTools: React.FC = () => {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [bannerOpen, setBannerOpen] = useState(false);
   const [homeAdminOpen, setHomeAdminOpen] = useState(false);
+  const [yourFavoritesOpen, setYourFavoritesOpen] = useState(false);
   const [inactiveProductsOpen, setInactiveProductsOpen] = useState(false);
   const [hideDelivered, setHideDelivered] = useState(false);
   const [dateOrder, setDateOrder] = useState<'asc' | 'desc'>('desc');
@@ -325,6 +327,20 @@ const AdminTools: React.FC = () => {
         </Box>
         <Collapse in={homeAdminOpen}>
           <HomeAdmin />
+        </Collapse>
+      </Box>
+
+      <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
+        <Box
+          component="button"
+          onClick={() => setYourFavoritesOpen((o) => !o)}
+          sx={collapsibleHeaderSx}
+        >
+          <Typography>Your Favorites</Typography>
+          <ExpandMoreIcon sx={{ transform: yourFavoritesOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+        </Box>
+        <Collapse in={yourFavoritesOpen}>
+          <YourFavoritesAdmin active={yourFavoritesOpen} />
         </Collapse>
       </Box>
 

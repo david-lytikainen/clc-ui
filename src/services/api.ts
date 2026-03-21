@@ -415,3 +415,26 @@ export const createBanner = async (data: {
   const response = await api.post<Banner>('/admin/banner', data);
   return response.data;
 };
+
+export interface YourFavoriteRow {
+  id: number;
+  product_id: number;
+  sort_order: number;
+}
+
+export interface YourFavoritesAdminResponse {
+  favorites: YourFavoriteRow[];
+  products: { id: number; title: string }[];
+}
+
+export const getYourFavoritesAdmin = async (): Promise<YourFavoritesAdminResponse> => {
+  const response = await api.get<YourFavoritesAdminResponse>('/admin/your-favorites');
+  return response.data;
+};
+
+export const saveYourFavoritesAdmin = async (
+  slots: (number | null)[]
+): Promise<{ favorites: YourFavoriteRow[] }> => {
+  const response = await api.put<{ favorites: YourFavoriteRow[] }>('/admin/your-favorites', { slots });
+  return response.data;
+};
