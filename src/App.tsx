@@ -66,6 +66,8 @@ function App() {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/leather-bags" element={<ShopPage />} />
             <Route path="/wallets-accessories" element={<ShopPage />} />
+            <Route path="/your-favorites" element={<ShopPage />} />
+            <Route path="/our-favorites" element={<ShopPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/orders" element={<MyOrders />} />

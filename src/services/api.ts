@@ -153,6 +153,21 @@ export const getProducts = async (): Promise<ProductCard[]> => {
   return response.data;
 };
 
+export const getYourFavoritesPublic = async (): Promise<ProductCard[]> => {
+  const response = await api.get<ProductCard[]>('/your-favorites');
+  return response.data;
+};
+
+export const getOurFavoritesPublic = async (): Promise<ProductCard[]> => {
+  const response = await api.get<ProductCard[]>('/our-favorites');
+  return response.data;
+};
+
+export const getShopTheCollectionPublic = async (): Promise<ProductCard[]> => {
+  const response = await api.get<ProductCard[]>('/shop-the-collection');
+  return response.data;
+};
+
 export const getInactiveProductsAdmin = async (): Promise<ProductCard[]> => {
   const response = await api.get<ProductCard[]>('/admin/products/inactive');
   return response.data;
@@ -436,5 +451,51 @@ export const saveYourFavoritesAdmin = async (
   slots: (number | null)[]
 ): Promise<{ favorites: YourFavoriteRow[] }> => {
   const response = await api.put<{ favorites: YourFavoriteRow[] }>('/admin/your-favorites', { slots });
+  return response.data;
+};
+
+export interface OurFavoriteRow {
+  id: number;
+  product_id: number;
+  sort_order: number;
+}
+
+export interface OurFavoritesAdminResponse {
+  favorites: OurFavoriteRow[];
+  products: { id: number; title: string }[];
+}
+
+export const getOurFavoritesAdmin = async (): Promise<OurFavoritesAdminResponse> => {
+  const response = await api.get<OurFavoritesAdminResponse>('/admin/our-favorites');
+  return response.data;
+};
+
+export const saveOurFavoritesAdmin = async (
+  slots: (number | null)[]
+): Promise<{ favorites: OurFavoriteRow[] }> => {
+  const response = await api.put<{ favorites: OurFavoriteRow[] }>('/admin/our-favorites', { slots });
+  return response.data;
+};
+
+export interface ShopTheCollectionRow {
+  id: number;
+  product_id: number;
+  sort_order: number;
+}
+
+export interface ShopTheCollectionAdminResponse {
+  favorites: ShopTheCollectionRow[];
+  products: { id: number; title: string }[];
+}
+
+export const getShopTheCollectionAdmin = async (): Promise<ShopTheCollectionAdminResponse> => {
+  const response = await api.get<ShopTheCollectionAdminResponse>('/admin/shop-the-collection');
+  return response.data;
+};
+
+export const saveShopTheCollectionAdmin = async (
+  slots: (number | null)[]
+): Promise<{ favorites: ShopTheCollectionRow[] }> => {
+  const response = await api.put<{ favorites: ShopTheCollectionRow[] }>('/admin/shop-the-collection', { slots });
   return response.data;
 };

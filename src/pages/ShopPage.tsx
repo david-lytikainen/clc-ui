@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, Grid, Typography, Button } from '@mui/material';
+import { Box, Grid, Typography, Button, CircularProgress } from '@mui/material';
 import ProductCard from '../components/ProductCard';
 import ProductCreateDialog from '../components/ProductCreateDialog';
 import useProducts from '../hooks/useProducts';
 import { useAuth } from '../context/AuthContext';
-import type { ProductCard as ProductCardType } from '../services/api';
+import { getYourFavoritesPublic, getOurFavoritesPublic, type ProductCard as ProductCardType } from '../services/api';
 
 const PATH_TO_TYPE: Record<string, string[] | null> = {
   '/shop': null,
@@ -26,20 +26,48 @@ const ShopPage: React.FC = () => {
   const { products, setProducts } = useProducts();
   const navigate = useNavigate();
   const location = useLocation();
+  const isYourFavoritesRoute = location.pathname === '/your-favorites';
+  const isOurFavoritesRoute = location.pathname === '/our-favorites';
   const [createOpen, setCreateOpen] = useState(false);
+  const [favoritesProducts, setFavoritesProducts] = useState<ProductCardType[] | null>(null);
+
+  useEffect(() => {
+    if (!isYourFavoritesRoute && !isOurFavoritesRoute) return;
+    let mounted = true;
+    setFavoritesProducts(null);
+    const fetchFavorites = isYourFavoritesRoute ? getYourFavoritesPublic : getOurFavoritesPublic;
+    fetchFavorites()
+      .then((list) => {
+        if (mounted) setFavoritesProducts(list);
+      })
+      .catch(() => {
+        if (mounted) setFavoritesProducts([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [isYourFavoritesRoute, isOurFavoritesRoute]);
 
   const filterType = PATH_TO_TYPE[location.pathname] ?? null;
   const title = PATH_TO_TITLE[location.pathname] ?? 'Shop';
 
   const filteredProducts = useMemo(() => {
+    if (isYourFavoritesRoute || isOurFavoritesRoute) return favoritesProducts ?? [];
     if (!filterType?.length) return products;
     return products.filter(
       (p: ProductCardType) =>
         p.product_type_name != null && filterType.includes(p.product_type_name)
     );
-  }, [products, filterType]);
+  }, [products, filterType, isYourFavoritesRoute, isOurFavoritesRoute, favoritesProducts]);
 
   const shopCards = useMemo(() => {
+    if (isYourFavoritesRoute || isOurFavoritesRoute) {
+      return filteredProducts.map((p, i) => ({
+        key: `yf-${i}-${p.id}`,
+        product: p,
+        imageUrl: p.image_url ?? null,
+      }));
+    }
     const rows: { key: string; product: ProductCardType; imageUrl: string | null }[] = [];
     for (const p of filteredProducts) {
       const urls =
@@ -53,7 +81,7 @@ const ShopPage: React.FC = () => {
       }
     }
     return rows;
-  }, [filteredProducts]);
+  }, [filteredProducts, isYourFavoritesRoute, isOurFavoritesRoute]);
 
   const openCreate = () => setCreateOpen(true);
   const closeCreate = () => setCreateOpen(false);
@@ -76,16 +104,22 @@ const ShopPage: React.FC = () => {
         )}
       </Box>
 
-      <Grid container>
-        {shopCards.map(({ key, product: p, imageUrl }) => (
-          <Grid key={key} item xs={12} sm={6} md={4} lg={3}>
-            <ProductCard
-              product={{ ...p, image_url: imageUrl }}
-              onClick={() => navigate(`/product/${p.id}`)}
-            />
-          </Grid>
-        ))}
-      </Grid>
+      {(isYourFavoritesRoute || isOurFavoritesRoute) && favoritesProducts === null ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container>
+          {shopCards.map(({ key, product: p, imageUrl }) => (
+            <Grid key={key} item xs={12} sm={6} md={4} lg={3}>
+              <ProductCard
+                product={{ ...p, image_url: imageUrl }}
+                onClick={() => navigate(`/product/${p.id}`)}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <ProductCreateDialog
         open={createOpen}

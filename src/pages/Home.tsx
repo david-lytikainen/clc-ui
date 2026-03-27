@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton, Button } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { getBannerPictures, getFooterPictures, type BannerPictureItem, type FooterPictureItem } from '../services/api';
-import useProducts from '../hooks/useProducts';
+import { getBannerPictures, getFooterPictures, getShopTheCollectionPublic, type BannerPictureItem, type FooterPictureItem, type ProductCard as ProductCardType } from '../services/api';
 import ProductCard from '../components/ProductCard';
-import { useAuth } from '../context/AuthContext';
 import SignInModal from '../components/SignInModal';
 
 const BANNER_HEIGHT = 670;
@@ -15,10 +13,9 @@ const TWO_IMAGE_HEIGHT = 500;
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const [pictures, setPictures] = useState<BannerPictureItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { products } = useProducts();
+  const [collectionProducts, setCollectionProducts] = useState<ProductCardType[]>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [footerPictures, setFooterPictures] = useState<FooterPictureItem[]>([]);
@@ -35,13 +32,19 @@ const Home: React.FC = () => {
       .catch(() => setFooterPictures([]));
   }, []);
 
+  useEffect(() => {
+    getShopTheCollectionPublic()
+      .then(setCollectionProducts)
+      .catch(() => setCollectionProducts([]));
+  }, []);
+
   const hasPictures = pictures.length > 0;
   const currentPicture = hasPictures ? pictures[currentIndex] : null;
 
   const footerLeft = footerPictures.find((p) => p.footer_index === 0);
   const footerRight = footerPictures.find((p) => p.footer_index === 1);
 
-  const maxPage = Math.max(0, Math.ceil(products.length / PRODUCTS_PER_PAGE) - 1);
+  const maxPage = Math.max(0, Math.ceil(collectionProducts.length / PRODUCTS_PER_PAGE) - 1);
   const atStart = pageIndex <= 0;
   const atEnd = pageIndex >= maxPage;
 
@@ -165,19 +168,19 @@ const Home: React.FC = () => {
               sx={{
                 display: 'flex',
                 flexWrap: 'nowrap',
-                width: `${products.length * 25}%`,
-                transform: products.length > 0
-                  ? `translateX(-${pageIndex * (PRODUCTS_PER_PAGE / products.length) * 100}%)`
+                width: `${collectionProducts.length * 25}%`,
+                transform: collectionProducts.length > 0
+                  ? `translateX(-${pageIndex * (PRODUCTS_PER_PAGE / collectionProducts.length) * 100}%)`
                   : 'none',
                 transition: 'transform 0.35s ease-out',
               }}
             >
-              {products.map((p) => (
+              {collectionProducts.map((p) => (
                 <Box
                   key={p.id}
                   sx={{
-                    flex: `0 0 ${products.length > 0 ? 100 / products.length : 25}%`,
-                    width: `${products.length > 0 ? 100 / products.length : 25}%`,
+                    flex: `0 0 ${collectionProducts.length > 0 ? 100 / collectionProducts.length : 25}%`,
+                    width: `${collectionProducts.length > 0 ? 100 / collectionProducts.length : 25}%`,
                     boxSizing: 'border-box',
                     px: 0.5,
                   }}
@@ -241,7 +244,7 @@ const Home: React.FC = () => {
           <Button
             variant="contained"
             size="large"
-            onClick={() => navigate('/shop')}
+            onClick={() => navigate('/your-favorites')}
             sx={{
               textTransform: 'none',
               position: 'relative',
@@ -252,7 +255,7 @@ const Home: React.FC = () => {
               '&:hover': { bgcolor: '#f5f5f5', color: 'primary.dark' },
             }}
           >
-            Shop All
+            Your Favorites
           </Button>
         </Box>
         <Box
@@ -285,7 +288,7 @@ const Home: React.FC = () => {
           <Button
             variant="contained"
             size="large"
-            onClick={() => (isAuthenticated ? navigate('/profile') : setSignInModalOpen(true))}
+            onClick={() => navigate('/our-favorites')}
             sx={{
               textTransform: 'none',
               position: 'relative',
@@ -296,7 +299,7 @@ const Home: React.FC = () => {
               '&:hover': { bgcolor: '#f5f5f5', color: 'primary.dark' },
             }}
           >
-            {isAuthenticated ? 'My Profile' : 'Sign in'}
+            Our Favorites
           </Button>
         </Box>
       </Box>
