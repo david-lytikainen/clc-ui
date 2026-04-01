@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -39,11 +39,12 @@ import CinnamonModal from '../components/CinnamonModal';
 
 type DraftValues = { title: string; description: string; price: string; dimensions: string };
 
-/** Last index in sort order for this color → highest sort_order among matching images. */
 function lastImageIndexForColor(imageColorIds: number[], colorId: number): number {
   let last = -1;
   for (let i = 0; i < imageColorIds.length; i++) {
-    if (imageColorIds[i] === colorId) last = i;
+    if (imageColorIds[i] === colorId) {
+      return i;
+    }
   }
   return last;
 }
@@ -65,6 +66,7 @@ function resolveCheckoutColorId(p: ProductWithImages, selectedColorId: number | 
 const ProductDetail: React.FC = () => {
   const theme = useTheme();
   const { productId } = useParams();
+  const location = useLocation();
   const [product, setProduct] = useState<ProductWithImages | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,15 @@ const ProductDetail: React.FC = () => {
         setProduct(res);
         setError(null);
 
-        const firstCid = res.product_colors?.[0]?.id ?? res.image_color_ids?.[0] ?? null;
+        const stateCidRaw = (location.state as { selectedColorId?: number | null } | null)?.selectedColorId;
+        const stateCid = typeof stateCidRaw === 'number' ? stateCidRaw : null;
+        const validColorIds = new Set<number>([
+          ...(res.product_colors?.map((c) => c.id) ?? []),
+          ...(res.image_color_ids ?? []),
+        ]);
+        const firstCid = stateCid != null && validColorIds.has(stateCid)
+          ? stateCid
+          : (res.product_colors?.[0]?.id ?? res.image_color_ids?.[0] ?? null);
         setSelectedColorId(firstCid);
         if (!res.image_urls?.length) {
           setSelectedImage(null);
@@ -109,7 +119,7 @@ const ProductDetail: React.FC = () => {
         setProduct(null);
       })
       .finally(() => setLoading(false));
-  }, [productId]);
+  }, [productId, location.state]);
 
   useEffect(() => {
     if (!product?.image_urls?.length) {

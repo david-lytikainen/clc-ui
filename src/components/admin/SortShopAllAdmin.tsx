@@ -1,59 +1,36 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Typography,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
+  IconButton,
   CircularProgress,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useTheme } from '@mui/material/styles';
-import { getShopTheCollectionAdmin, saveShopTheCollectionAdmin, type ShopTheCollectionRow } from '../../services/api';
+import { getProductsSortAdmin, saveProductsSortAdmin, type ProductSortRow } from '../../services/api';
 
 const SAVED_FEEDBACK_MS = 1500;
 
-function buildDraft(
-  favorites: ShopTheCollectionRow[],
-  products: { id: number }[],
-  maxSlots: number
-): (number | null)[] {
-  const draft = Array<number | null>(maxSlots).fill(null);
-  if (maxSlots === 0) return draft;
-  const active = new Set(products.map((p) => p.id));
-  for (const row of favorites) {
-    if (row.sort_order >= maxSlots) continue;
-    if (active.has(row.product_id)) draft[row.sort_order] = row.product_id;
-  }
+function buildDraft(rows: ProductSortRow[]): (number | null)[] {
+  const n = rows.length;
+  const draft = Array<number | null>(n).fill(null);
+  const bySort = [...rows].sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
+  for (let i = 0; i < bySort.length; i++) draft[i] = bySort[i].id;
   return draft;
 }
 
-function lastFilledIndex(draft: (number | null)[]): number {
-  let last = -1;
-  for (let i = 0; i < draft.length; i++) {
-    if (draft[i] != null) last = i;
-  }
-  return last;
-}
-
-function visibleCount(draft: (number | null)[], maxSlots: number): number {
-  if (maxSlots === 0) return 0;
-  const last = lastFilledIndex(draft);
-  return last < 0 ? 1 : Math.min(maxSlots, last + 2);
-}
-
-const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
+const SortShopAllAdmin: React.FC<{ active: boolean }> = ({ active }) => {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<{ id: number; title: string }[]>([]);
   const [draft, setDraft] = useState<(number | null)[]>([]);
+  const [initialDraft, setInitialDraft] = useState<(number | null)[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const maxSlots = products.length;
-  const nVisible = useMemo(() => visibleCount(draft, maxSlots), [draft, maxSlots]);
 
   useEffect(() => () => {
     if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
@@ -62,14 +39,21 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
   useEffect(() => {
     if (!active) return;
     setLoading(true);
-    getShopTheCollectionAdmin()
+    getProductsSortAdmin()
       .then((res) => {
-        setProducts(res.products);
-        const m = res.products.length;
-        setDraft(buildDraft(res.favorites, res.products, m));
+        const ordered = [...res.products].sort((a, b) => a.title.localeCompare(b.title));
+        setProducts(ordered.map((p) => ({ id: p.id, title: p.title })));
+        const built = buildDraft(res.products);
+        setDraft(built);
+        setInitialDraft(built);
       })
       .finally(() => setLoading(false));
   }, [active]);
+
+  const hasChanges = useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(initialDraft),
+    [draft, initialDraft]
+  );
 
   const setSlot = (index: number, value: number | null) => {
     setDraft((prev) => {
@@ -79,11 +63,25 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
     });
   };
 
+  const moveSlot = (index: number, direction: 'left' | 'right') => {
+    const target = direction === 'left' ? index - 1 : index + 1;
+    if (target < 0 || target >= draft.length) return;
+    const current = draft[index];
+    const nextVal = draft[target];
+    setSlot(index, nextVal);
+    setSlot(target, current);
+  };
+
   const handleSave = () => {
+    const slots = draft
+      .map((productId, idx) => (productId == null ? null : { product_id: productId, sort_order: idx }))
+      .filter((x): x is { product_id: number; sort_order: number } => x !== null);
     setSaving(true);
-    saveShopTheCollectionAdmin(draft.slice(0, nVisible))
+    saveProductsSortAdmin(slots)
       .then((res) => {
-        setDraft(buildDraft(res.favorites, products, maxSlots));
+        const built = buildDraft(res.products);
+        setDraft(built);
+        setInitialDraft(built);
         setSaved(true);
         if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
         savedTimeoutRef.current = setTimeout(() => setSaved(false), SAVED_FEEDBACK_MS);
@@ -99,12 +97,10 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
     );
   }
 
-  if (maxSlots === 0) {
+  if (draft.length === 0) {
     return (
       <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
-        <Typography variant="body2" color="text.secondary">
-          No active products — add or activate a product first.
-        </Typography>
+        <Typography variant="body2" color="text.secondary">No products found.</Typography>
       </Box>
     );
   }
@@ -112,7 +108,7 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
   return (
     <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
-        {Array.from({ length: nVisible }, (_, i) => (
+        {Array.from({ length: draft.length }, (_, i) => (
           <Box
             key={i}
             sx={{
@@ -121,28 +117,39 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
               minWidth: 0,
             }}
           >
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              {i + 1}
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }} noWrap>
+              {products.find((p) => p.id === draft[i])?.title ?? ''}
             </Typography>
-            <FormControl size="small" fullWidth>
-              <Select
-                labelId={`stc-${i}`}
-                value={draft[i] == null ? '' : String(draft[i])}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setSlot(i, v === '' ? null : Number(v));
-                }}
+            <Box
+              sx={{
+                minHeight: 42,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                px: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.25,
+              }}
+            >
+              <IconButton
+                size="small"
+                aria-label="Move left"
+                onClick={() => moveSlot(i, 'left')}
+                disabled={i === 0}
               >
-                <MenuItem value="">
-                  <em>Empty</em>
-                </MenuItem>
-                {products.map((p) => (
-                  <MenuItem key={p.id} value={String(p.id)}>
-                    {p.title}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                <ArrowBackIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                aria-label="Move right"
+                onClick={() => moveSlot(i, 'right')}
+                disabled={i === draft.length - 1}
+              >
+                <ArrowForwardIcon fontSize="small" />
+              </IconButton>
+            </Box>
           </Box>
         ))}
       </Box>
@@ -151,7 +158,7 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
           size="small"
           variant="outlined"
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !hasChanges}
           sx={{
             minWidth: 72,
             height: 40,
@@ -184,4 +191,4 @@ const ShopTheCollectionAdmin: React.FC<{ active: boolean }> = ({ active }) => {
   );
 };
 
-export default ShopTheCollectionAdmin;
+export default SortShopAllAdmin;

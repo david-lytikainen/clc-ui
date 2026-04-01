@@ -73,6 +73,8 @@ export interface ProductCard {
   created_at: string;
   image_url: string | null;
   image_urls?: string[];
+  image_color_ids?: number[];
+  sort_order?: number;
 }
 
 interface AuthResponse {
@@ -160,11 +162,6 @@ export const getYourFavoritesPublic = async (): Promise<ProductCard[]> => {
 
 export const getOurFavoritesPublic = async (): Promise<ProductCard[]> => {
   const response = await api.get<ProductCard[]>('/our-favorites');
-  return response.data;
-};
-
-export const getShopTheCollectionPublic = async (): Promise<ProductCard[]> => {
-  const response = await api.get<ProductCard[]>('/shop-the-collection');
   return response.data;
 };
 
@@ -477,25 +474,20 @@ export const saveOurFavoritesAdmin = async (
   return response.data;
 };
 
-export interface ShopTheCollectionRow {
+export interface ProductSortRow {
   id: number;
-  product_id: number;
+  title: string;
   sort_order: number;
 }
 
-export interface ShopTheCollectionAdminResponse {
-  favorites: ShopTheCollectionRow[];
-  products: { id: number; title: string }[];
-}
-
-export const getShopTheCollectionAdmin = async (): Promise<ShopTheCollectionAdminResponse> => {
-  const response = await api.get<ShopTheCollectionAdminResponse>('/admin/shop-the-collection');
+export const getProductsSortAdmin = async (): Promise<{ products: ProductSortRow[] }> => {
+  const response = await api.get<{ products: ProductSortRow[] }>('/products/sort');
   return response.data;
 };
 
-export const saveShopTheCollectionAdmin = async (
-  slots: (number | null)[]
-): Promise<{ favorites: ShopTheCollectionRow[] }> => {
-  const response = await api.put<{ favorites: ShopTheCollectionRow[] }>('/admin/shop-the-collection', { slots });
+export const saveProductsSortAdmin = async (
+  products: { product_id: number; sort_order: number }[]
+): Promise<{ products: ProductSortRow[] }> => {
+  const response = await api.put<{ products: ProductSortRow[] }>('/products/sort', products);
   return response.data;
 };

@@ -10,7 +10,7 @@ import { getAdminOrders, getBanner, createBanner, getInactiveProductsAdmin, upda
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import HomeAdmin from '../components/admin/HomeAdmin';
-import ShopTheCollectionAdmin from '../components/admin/ShopTheCollectionAdmin';
+import SortShopAllAdmin from '../components/admin/SortShopAllAdmin';
 import YourFavoritesAdmin from '../components/admin/YourFavoritesAdmin';
 import OurFavoritesAdmin from '../components/admin/OurFavoritesAdmin';
 
@@ -41,7 +41,7 @@ const AdminTools: React.FC = () => {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [bannerOpen, setBannerOpen] = useState(false);
   const [homeAdminOpen, setHomeAdminOpen] = useState(false);
-  const [shopTheCollectionOpen, setShopTheCollectionOpen] = useState(false);
+  const [sortProductsOpen, setSortProductsOpen] = useState(false);
   const [yourFavoritesOpen, setYourFavoritesOpen] = useState(false);
   const [ourFavoritesOpen, setOurFavoritesOpen] = useState(false);
   const [inactiveProductsOpen, setInactiveProductsOpen] = useState(false);
@@ -337,14 +337,14 @@ const AdminTools: React.FC = () => {
       <Box sx={{ border: '1px solid', borderColor: 'divider' }}>
         <Box
           component="button"
-          onClick={() => setShopTheCollectionOpen((o) => !o)}
+          onClick={() => setSortProductsOpen((o) => !o)}
           sx={collapsibleHeaderSx}
         >
-          <Typography>Shop the Collection</Typography>
-          <ExpandMoreIcon sx={{ transform: shopTheCollectionOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+          <Typography>Sort Products</Typography>
+          <ExpandMoreIcon sx={{ transform: sortProductsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
         </Box>
-        <Collapse in={shopTheCollectionOpen}>
-          <ShopTheCollectionAdmin active={shopTheCollectionOpen} />
+        <Collapse in={sortProductsOpen}>
+          <SortShopAllAdmin active={sortProductsOpen} />
         </Collapse>
       </Box>
 

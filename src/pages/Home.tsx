@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton, Button } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { getBannerPictures, getFooterPictures, getShopTheCollectionPublic, type BannerPictureItem, type FooterPictureItem, type ProductCard as ProductCardType } from '../services/api';
+import { getBannerPictures, getFooterPictures, type BannerPictureItem, type FooterPictureItem } from '../services/api';
+import useProducts from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import SignInModal from '../components/SignInModal';
 
@@ -15,7 +16,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [pictures, setPictures] = useState<BannerPictureItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [collectionProducts, setCollectionProducts] = useState<ProductCardType[]>([]);
+  const { products: collectionProducts } = useProducts();
   const [pageIndex, setPageIndex] = useState(0);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [footerPictures, setFooterPictures] = useState<FooterPictureItem[]>([]);
@@ -30,12 +31,6 @@ const Home: React.FC = () => {
     getFooterPictures()
       .then(setFooterPictures)
       .catch(() => setFooterPictures([]));
-  }, []);
-
-  useEffect(() => {
-    getShopTheCollectionPublic()
-      .then(setCollectionProducts)
-      .catch(() => setCollectionProducts([]));
   }, []);
 
   const hasPictures = pictures.length > 0;
