@@ -1,11 +1,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, Grid, Typography, Button, CircularProgress } from '@mui/material';
+import { Box, Grid, Typography, Button, CircularProgress, useMediaQuery } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import ProductCard from '../components/ProductCard';
 import ProductCreateDialog from '../components/ProductCreateDialog';
 import useProducts from '../hooks/useProducts';
 import { useAuth } from '../context/AuthContext';
 import { getYourFavoritesPublic, getOurFavoritesPublic, type ProductCard as ProductCardType } from '../services/api';
+import { theme } from '../styles/theme';
 
 const PATH_TO_TYPE: Record<string, string[] | null> = {
   '/shop': null,
@@ -30,6 +32,7 @@ const ShopPage: React.FC = () => {
   const isOurFavoritesRoute = location.pathname === '/our-favorites';
   const [createOpen, setCreateOpen] = useState(false);
   const [favoritesProducts, setFavoritesProducts] = useState<ProductCardType[] | null>(null);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     if (!isYourFavoritesRoute && !isOurFavoritesRoute) return;
@@ -100,8 +103,9 @@ const ShopPage: React.FC = () => {
             color="primary"
             onClick={openCreate}
             aria-label="create-product"
+            sx={isMobile ? { minWidth: 40, px: 1 } : undefined}
           >
-            Create product
+            {isMobile ? <AddIcon /> : 'Create product'}
           </Button>
         )}
       </Box>

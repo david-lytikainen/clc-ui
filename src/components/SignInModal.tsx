@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, IconButton, Tabs, Tab, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, IconButton, Tabs, Tab, Typography, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@mui/material/styles';
 import { colors } from '../styles/colors';
@@ -15,7 +15,16 @@ interface SignInModalProps {
 const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const auth = useAuth();
-  const [activeTab, setActiveTab] = useState(0); // 0 = Sign In, 1 = Create Account, 2 = Forgot Password
+  const [activeTab, setActiveTab] = useState(0); // 0 = Sign In, 1 = Create Account, 2 = Forgot Password (desktop tab)
+  const [showForgotPasswordMobile, setShowForgotPasswordMobile] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    if (isMobile && activeTab === 2) {
+      setActiveTab(0);
+      setShowForgotPasswordMobile(true);
+    }
+  }, [isMobile, activeTab]);
   
   // Sign In form state
   const [email, setEmail] = useState('');
@@ -32,6 +41,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setShowForgotPasswordMobile(false);
     setActiveTab(newValue);
     clearAllFields();
   };
@@ -96,8 +106,13 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
   const handleClose = () => {
     clearAllFields();
     setActiveTab(0);
+    setShowForgotPasswordMobile(false);
     onClose();
   };
+
+  const showForgotContent =
+    (!isMobile && activeTab === 2) || (isMobile && showForgotPasswordMobile);
+  const tabsValue = isMobile && showForgotPasswordMobile ? 0 : activeTab;
 
   return (
     <Dialog
@@ -120,7 +135,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
         px: 0,
       }}>
         <Tabs 
-          value={activeTab} 
+          value={tabsValue} 
           onChange={handleTabChange}
           sx={{
             flex: 1,
@@ -151,17 +166,19 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
               },
             }}
           />
-          <Tab 
-            label="Forgot Password" 
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              color: theme.palette.text.secondary,
-              '&.Mui-selected': {
-                color: theme.palette.primary.main,
-              },
-            }}
-          />
+          {!isMobile && (
+            <Tab
+              label="Forgot Password"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                color: theme.palette.text.secondary,
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            />
+          )}
         </Tabs>
         <IconButton
           onClick={handleClose}
@@ -176,8 +193,16 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
         </IconButton>
       </DialogTitle>
 
-      {activeTab === 2 ? (
+      {showForgotContent ? (
         <DialogContent>
+          {isMobile && (
+            <Button
+              onClick={() => setShowForgotPasswordMobile(false)}
+              sx={{ textTransform: 'none', mb: 2, px: 0, minWidth: 0 }}
+            >
+              ← Back to sign in
+            </Button>
+          )}
           <ForgotPasswordTab onClose={handleClose} />
         </DialogContent>
       ) : (
@@ -215,7 +240,22 @@ const SignInModal: React.FC<SignInModalProps> = ({ open, onClose }) => {
                     },
                   }}
                 />
-                {/* TODO: Add "Forgot Password?" link */}
+                {isMobile && (
+                  <Button
+                    type="button"
+                    onClick={() => setShowForgotPasswordMobile(true)}
+                    sx={{
+                      alignSelf: 'flex-start',
+                      textTransform: 'none',
+                      mt: -2,
+                      px: 0,
+                      minWidth: 0,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Forgot password?
+                  </Button>
+                )}
               </>
             ) : (
               // Create Account Form

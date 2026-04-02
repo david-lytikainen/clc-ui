@@ -95,6 +95,7 @@ const Navbar: React.FC = () => {
         display: 'flex', 
         flexDirection: 'column',
         minHeight: 'auto',
+        position: 'relative',
       }}>
         <Box 
           component={Link}
@@ -106,7 +107,7 @@ const Navbar: React.FC = () => {
             textDecoration: 'none',
             cursor: 'pointer',
             py: 1,
-            alignSelf: isMobile ? 'flex-start' : 'center',
+            alignSelf: 'center',
           }}
         >
           <LargeNameTranspLogo style={{ width: 250, height: 'auto' }} />
@@ -355,7 +356,31 @@ const Navbar: React.FC = () => {
 
         {isMobile && (
           <>
-            <Box sx={{ position: 'absolute', right: 16, top: 16 }}>
+            <Box
+              sx={{
+                position: 'absolute',
+                right: 12,
+                top: 16,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton
+                onClick={() => navigate('/cart')}
+                aria-label="Cart"
+                sx={{
+                  color: theme.palette.text.primary,
+                  '&:hover': {
+                    color: theme.palette.secondary.main,
+                    backgroundColor: 'transparent',
+                  },
+                }}
+              >
+                <Badge badgeContent={cartCount} color="primary">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
               <IconButton
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Open menu"
@@ -376,6 +401,18 @@ const Navbar: React.FC = () => {
               onClose={() => setMobileMenuOpen(false)}
               PaperProps={{ sx: { width: '60vw', maxWidth: 360, p: 2 } }}
             >
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                {navLinks.map((link) => (
+                  <Button
+                    key={link.path}
+                    onClick={() => { navigate(link.path); setMobileMenuOpen(false); }}
+                    sx={{ textTransform: 'none', px: 0, py: 0.75, justifyContent: 'flex-start' }}
+                  >
+                    {link.label === 'HOME' ? 'Home' : link.label === 'SHOP ALL' ? 'Shop All' : link.label === 'HANDBAGS' ? 'Handbags' : link.label === 'WALLETS & ACCESSORIES' ? 'Wallets & Accessories' : link.label === 'ABOUT' ? 'About' : link.label}
+                  </Button>
+                ))}
+              </Box>
+
               {isAuthenticated ? (
                 <>
                   <Button
@@ -383,6 +420,7 @@ const Navbar: React.FC = () => {
                     onClick={() => setMobileUserOpen((v) => !v)}
                     endIcon={<ExpandMoreIcon sx={{ transform: mobileUserOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />}
                     sx={{
+                      color: theme.palette.text.primary,
                       justifyContent: 'space-between',
                       textTransform: 'none',
                       px: 0,
@@ -400,42 +438,23 @@ const Navbar: React.FC = () => {
                   </Button>
                   <Collapse in={mobileUserOpen}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Profile</Button>
-                      <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>My Orders</Button>
+                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Profile</Button>
+                      <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>My Orders</Button>
                       {isAdmin() && (
-                        <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Admin Tools</Button>
+                        <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Admin Tools</Button>
                       )}
-                      <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Sign out</Button>
+                      <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Sign out</Button>
                     </Box>
                   </Collapse>
                 </>
               ) : (
                 <Button
                   onClick={() => { setSignInModalOpen(true); setMobileMenuOpen(false); }}
-                  sx={{ textTransform: 'none', px: 0, py: .75, justifyContent: 'flex-start' }}
+                  sx={{ color: theme.palette.text.primary, textTransform: 'none', px: 0, py: .75, justifyContent: 'flex-start' }}
                 >
                   Sign In
                 </Button>
               )}
-
-              <Button
-                onClick={() => { navigate('/cart'); setMobileMenuOpen(false); }}
-                sx={{ textTransform: 'none', px: 0, py: .75, justifyContent: 'flex-start' }}
-              >
-                My Cart
-              </Button>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                {navLinks.map((link) => (
-                  <Button
-                    key={link.path}
-                    onClick={() => { navigate(link.path); setMobileMenuOpen(false); }}
-                    sx={{ textTransform: 'none', px: 0, py: 0.75, justifyContent: 'flex-start' }}
-                  >
-                    {link.label === 'HOME' ? 'Home' : link.label === 'SHOP ALL' ? 'Shop All' : link.label === 'HANDBAGS' ? 'Handbags' : link.label === 'WALLETS & ACCESSORIES' ? 'Wallets & Accessories' : link.label === 'ABOUT' ? 'About' : link.label}
-                  </Button>
-                ))}
-              </Box>
             </Drawer>
           </>
         )}

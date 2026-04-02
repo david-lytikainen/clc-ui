@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton, Button } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { getBannerPictures, getFooterPictures, type BannerPictureItem, type FooterPictureItem } from '../services/api';
 import useProducts from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import SignInModal from '../components/SignInModal';
-
-const BANNER_HEIGHT = 670;
-const PRODUCTS_PER_PAGE = 4;
-const TWO_IMAGE_HEIGHT = 500;
+import { theme } from '../styles/theme';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +17,11 @@ const Home: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [footerPictures, setFooterPictures] = useState<FooterPictureItem[]>([]);
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const BANNER_HEIGHT = isMobile ? 300 : 670;
+  const productsPerPage = isMobile ? 1 : 4;
+  const TWO_IMAGE_HEIGHT = isMobile ? 300 : 500;
 
   useEffect(() => {
     getBannerPictures()
@@ -39,7 +41,12 @@ const Home: React.FC = () => {
   const footerLeft = footerPictures.find((p) => p.footer_index === 0);
   const footerRight = footerPictures.find((p) => p.footer_index === 1);
 
-  const maxPage = Math.max(0, Math.ceil(collectionProducts.length / PRODUCTS_PER_PAGE) - 1);
+  const maxPage = Math.max(0, Math.ceil(collectionProducts.length / productsPerPage) - 1);
+
+  useEffect(() => {
+    setPageIndex((p) => Math.min(p, maxPage));
+  }, [maxPage]);
+
   const atStart = pageIndex <= 0;
   const atEnd = pageIndex >= maxPage;
 
@@ -56,7 +63,7 @@ const Home: React.FC = () => {
       {/* Banner */}
       <Box
         sx={{
-          width: '80%',
+          width: isMobile ? '100%' : '80%',
           height: BANNER_HEIGHT,
           position: 'relative',
           overflow: 'hidden',
@@ -117,7 +124,7 @@ const Home: React.FC = () => {
         )}
       </Box>
 
-      {/* Perfect Gifts – one row, 4 visible, slide with arrows */}
+      {/* Shop the Collection – 1 visible on mobile, 4 on md+, slide with arrows */}
       <Box sx={{ py: 4, px: { xs: 1, sm: 2 } }}>
         <Typography variant="h4" sx={{ textAlign: 'center', mb: 0, pb: 0 }}>
           Shop the Collection
@@ -156,16 +163,19 @@ const Home: React.FC = () => {
             sx={{
               flex: 1,
               overflow: 'hidden',
-              mx: 6,
+              mx: { xs: 1, sm: 6 },
             }}
           >
             <Box
               sx={{
                 display: 'flex',
                 flexWrap: 'nowrap',
-                width: `${collectionProducts.length * 25}%`,
+                width:
+                  collectionProducts.length > 0
+                    ? `${collectionProducts.length * (100 / productsPerPage)}%`
+                    : `${100 / productsPerPage}%`,
                 transform: collectionProducts.length > 0
-                  ? `translateX(-${pageIndex * (PRODUCTS_PER_PAGE / collectionProducts.length) * 100}%)`
+                  ? `translateX(-${pageIndex * (productsPerPage / collectionProducts.length) * 100}%)`
                   : 'none',
                 transition: 'transform 0.35s ease-out',
               }}
@@ -174,8 +184,8 @@ const Home: React.FC = () => {
                 <Box
                   key={p.id}
                   sx={{
-                    flex: `0 0 ${collectionProducts.length > 0 ? 100 / collectionProducts.length : 25}%`,
-                    width: `${collectionProducts.length > 0 ? 100 / collectionProducts.length : 25}%`,
+                    flex: `0 0 ${collectionProducts.length > 0 ? 100 / collectionProducts.length : 100 / productsPerPage}%`,
+                    width: `${collectionProducts.length > 0 ? 100 / collectionProducts.length : 100 / productsPerPage}%`,
                     boxSizing: 'border-box',
                     px: 0.5,
                   }}
@@ -208,7 +218,7 @@ const Home: React.FC = () => {
       </Box>
 
       {/* Two side-by-side images (footer pictures) with centered buttons */}
-      <Box sx={{ display: 'flex', flexWrap: 'nowrap', width: '100%', mt: 8 }}>
+      <Box sx={{ display: 'flex', flexWrap: 'nowrap', width: '100%', mt: isMobile ? 2 : 8 }}>
         <Box
           sx={{
             width: '50%',
