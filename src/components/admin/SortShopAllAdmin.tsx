@@ -3,12 +3,9 @@ import {
   Box,
   Typography,
   Button,
-  IconButton,
   CircularProgress,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useTheme } from '@mui/material/styles';
 import { getProductsSortAdmin, saveProductsSortAdmin, type ProductSortRow } from '../../services/api';
 
@@ -28,6 +25,8 @@ const SortShopAllAdmin: React.FC<{ active: boolean }> = ({ active }) => {
   const [products, setProducts] = useState<{ id: number; title: string }[]>([]);
   const [draft, setDraft] = useState<(number | null)[]>([]);
   const [initialDraft, setInitialDraft] = useState<(number | null)[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -55,21 +54,14 @@ const SortShopAllAdmin: React.FC<{ active: boolean }> = ({ active }) => {
     [draft, initialDraft]
   );
 
-  const setSlot = (index: number, value: number | null) => {
+  const moveSlotTo = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= draft.length || to >= draft.length) return;
     setDraft((prev) => {
       const next = [...prev];
-      next[index] = value;
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
       return next;
     });
-  };
-
-  const moveSlot = (index: number, direction: 'left' | 'right') => {
-    const target = direction === 'left' ? index - 1 : index + 1;
-    if (target < 0 || target >= draft.length) return;
-    const current = draft[index];
-    const nextVal = draft[target];
-    setSlot(index, nextVal);
-    setSlot(target, current);
   };
 
   const handleSave = () => {
@@ -107,48 +99,59 @@ const SortShopAllAdmin: React.FC<{ active: boolean }> = ({ active }) => {
 
   return (
     <Box sx={{ p: 2, backgroundColor: 'background.paper' }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
         {Array.from({ length: draft.length }, (_, i) => (
           <Box
             key={i}
+            draggable
+            onDragStart={(e) => {
+              setDragIndex(i);
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              if (hoverIndex !== i) setHoverIndex(i);
+            }}
+            onDragEnter={() => setHoverIndex(i)}
+            onDrop={() => {
+              if (dragIndex == null) return;
+              moveSlotTo(dragIndex, i);
+              setDragIndex(null);
+              setHoverIndex(null);
+            }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setHoverIndex(null);
+            }}
             sx={{
               flex: '0 0 auto',
-              width: { xs: 'calc(100vw / 3)', md: 'calc(100vw / 8)', lg: 'calc(100vw / 10)' },
-              minWidth: 0,
+              width: {
+                xs: 'calc((100% - 1.25rem) / 2)',
+                md: 'calc((100% - 3.75rem) / 4)',
+                lg: 'calc((100% - 6.25rem) / 6)',
+                xl: 'calc((100% - 8.75rem) / 8)',
+              },
+              border: '1px solid',
+              borderColor: dragIndex === i ? 'primary.main' : 'divider',
+              borderRadius: 1,
+              px: 1.25,
+              py: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'grab',
+              opacity: dragIndex === i ? 0.6 : 1,
+              boxShadow: hoverIndex === i && dragIndex !== i ? 'inset 0 0 0 2px rgba(0,0,0,0.2)' : 'none',
             }}
           >
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }} noWrap>
+            <Typography variant="body2" color="text.secondary" noWrap>
               {products.find((p) => p.id === draft[i])?.title ?? ''}
             </Typography>
-            <Box
-              sx={{
-                minHeight: 42,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                px: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 0.25,
-              }}
-            >
-              <IconButton
-                size="small"
-                aria-label="Move left"
-                onClick={() => moveSlot(i, 'left')}
-                disabled={i === 0}
-              >
-                <ArrowBackIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                aria-label="Move right"
-                onClick={() => moveSlot(i, 'right')}
-                disabled={i === draft.length - 1}
-              >
-                <ArrowForwardIcon fontSize="small" />
-              </IconButton>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 4px)', gap: '3px', ml: 1, opacity: 0.7 }}>
+              {Array.from({ length: 4 }).map((_, dotIdx) => (
+                <Box key={dotIdx} sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: 'text.secondary' }} />
+              ))}
             </Box>
           </Box>
         ))}

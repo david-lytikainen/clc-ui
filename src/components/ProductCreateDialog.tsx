@@ -10,6 +10,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Checkbox,
+  FormControlLabel,
   Button,
   Box,
   List,
@@ -44,6 +46,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
   });
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const [imageColorIds, setImageColorIds] = useState<ImageColorSelection[]>([]);
+  const [imageIsDisplayed, setImageIsDisplayed] = useState<boolean[]>([]);
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [catalogColors, setCatalogColors] = useState<CatalogColor[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -75,6 +78,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     setFormFiles(files);
     setImageColorIds(files.map(() => ''));
+    setImageIsDisplayed(files.map(() => true));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -92,11 +96,18 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       [next[index], next[j]] = [next[j], next[index]];
       return next;
     });
+    setImageIsDisplayed((prev) => {
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
   };
 
   const removeFile = (index: number) => {
     setFormFiles((prev) => prev.filter((_, i) => i !== index));
     setImageColorIds((prev) => prev.filter((_, i) => i !== index));
+    setImageIsDisplayed((prev) => prev.filter((_, i) => i !== index));
   };
 
   const setColorAtIndex = (index: number, value: ImageColorSelection) => {
@@ -131,6 +142,9 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       imageColorIds.forEach((cid) => {
         if (typeof cid === 'number') fd.append('image_color_ids', String(cid));
       });
+      imageIsDisplayed.forEach((shown) => {
+        fd.append('image_is_displayed', shown ? 'true' : 'false');
+      });
 
       const created = await createProduct(fd);
       onCreated && onCreated(created);
@@ -138,6 +152,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '' });
       setFormFiles([]);
       setImageColorIds([]);
+      setImageIsDisplayed([]);
     } catch (err) {
       console.error(err);
       if (axios.isAxiosError(err) && err.response?.data) {
@@ -245,7 +260,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
                           </IconButton>
                         </Box>
                       }
-                      sx={{ pr: 16, display: 'block' }}
+                      sx={{ pr: 16, display: 'block', borderBottom: '.5px solid gray' }}
                     >
                       <Typography variant="body2" noWrap sx={{ pr: 6 }}>
                         {file.name}
@@ -284,6 +299,22 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
                           ))}
                         </Select>
                       </FormControl>
+                      <FormControlLabel
+                        sx={{ mt: 0.75 }}
+                        control={
+                          <Checkbox
+                            checked={Boolean(imageIsDisplayed[index])}
+                            onChange={(_, checked) =>
+                              setImageIsDisplayed((prev) => {
+                                const next = [...prev];
+                                next[index] = checked;
+                                return next;
+                              })
+                            }
+                          />
+                        }
+                        label="Show on Shop Pages"
+                      />
                     </ListItem>
                   ))}
                 </List>

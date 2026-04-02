@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Box, Button, IconButton, Badge } from '@mui/material';
+import { AppBar, Toolbar, Box, Button, IconButton, Badge, Drawer, Collapse } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import MenuIcon from '@mui/icons-material/Menu';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import SignInModal from '../SignInModal';
 import { useAuth } from '../../context/AuthContext';
 import { ReactComponent as LargeNameTranspLogo } from '../../assets/LargeNameTranspLogo.svg';
@@ -11,8 +14,11 @@ import { getCart } from '../../services/api';
 const Navbar: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileUserOpen, setMobileUserOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -100,13 +106,14 @@ const Navbar: React.FC = () => {
             textDecoration: 'none',
             cursor: 'pointer',
             py: 1,
+            alignSelf: isMobile ? 'flex-start' : 'center',
           }}
         >
           <LargeNameTranspLogo style={{ width: 250, height: 'auto' }} />
         </Box>
 
         {/* All tabs */}
-        <Box
+        {!isMobile && <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -143,10 +150,10 @@ const Navbar: React.FC = () => {
               </Button>
             ))}
           </Box>
-        </Box>
+        </Box>}
 
         {/* User actions */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
+        {!isMobile && <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, position: 'absolute', right: 16, top: 16 }}>
           {isAuthenticated ? (
             <Box
               sx={{ position: 'relative' }}
@@ -344,7 +351,94 @@ const Navbar: React.FC = () => {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
-        </Box>
+        </Box>}
+
+        {isMobile && (
+          <>
+            <Box sx={{ position: 'absolute', right: 16, top: 16 }}>
+              <IconButton
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+                sx={{
+                  color: theme.palette.text.primary,
+                  '&:hover': {
+                    color: theme.palette.secondary.main,
+                    backgroundColor: 'transparent',
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+            <Drawer
+              anchor="right"
+              open={mobileMenuOpen}
+              onClose={() => setMobileMenuOpen(false)}
+              PaperProps={{ sx: { width: '60vw', maxWidth: 360, p: 2 } }}
+            >
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    disableRipple
+                    onClick={() => setMobileUserOpen((v) => !v)}
+                    endIcon={<ExpandMoreIcon sx={{ transform: mobileUserOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />}
+                    sx={{
+                      justifyContent: 'space-between',
+                      textTransform: 'none',
+                      px: 0,
+                      py: 0.75,
+                      borderRadius: 0,
+                      boxShadow: 'none',
+                      backgroundColor: 'transparent',
+                      '&:hover': { backgroundColor: 'transparent', boxShadow: 'none' },
+                      '&:active': { backgroundColor: 'transparent', boxShadow: 'none' },
+                      '&.Mui-focusVisible': { backgroundColor: 'transparent', boxShadow: 'none' },
+                      '&:focus-visible': { outline: 'none', backgroundColor: 'transparent', boxShadow: 'none' },
+                    }}
+                  >
+                    Hi, {user?.first_name || 'User'}
+                  </Button>
+                  <Collapse in={mobileUserOpen}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Profile</Button>
+                      <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>My Orders</Button>
+                      {isAdmin() && (
+                        <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Admin Tools</Button>
+                      )}
+                      <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Sign out</Button>
+                    </Box>
+                  </Collapse>
+                </>
+              ) : (
+                <Button
+                  onClick={() => { setSignInModalOpen(true); setMobileMenuOpen(false); }}
+                  sx={{ textTransform: 'none', px: 0, py: .75, justifyContent: 'flex-start' }}
+                >
+                  Sign In
+                </Button>
+              )}
+
+              <Button
+                onClick={() => { navigate('/cart'); setMobileMenuOpen(false); }}
+                sx={{ textTransform: 'none', px: 0, py: .75, justifyContent: 'flex-start' }}
+              >
+                My Cart
+              </Button>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                {navLinks.map((link) => (
+                  <Button
+                    key={link.path}
+                    onClick={() => { navigate(link.path); setMobileMenuOpen(false); }}
+                    sx={{ textTransform: 'none', px: 0, py: 0.75, justifyContent: 'flex-start' }}
+                  >
+                    {link.label === 'HOME' ? 'Home' : link.label === 'SHOP ALL' ? 'Shop All' : link.label === 'HANDBAGS' ? 'Handbags' : link.label === 'WALLETS & ACCESSORIES' ? 'Wallets & Accessories' : link.label === 'ABOUT' ? 'About' : link.label}
+                  </Button>
+                ))}
+              </Box>
+            </Drawer>
+          </>
+        )}
 
       </Toolbar>
       <SignInModal 
