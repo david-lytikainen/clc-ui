@@ -43,6 +43,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     description: '',
     product_type_id: '',
     dimensions: '',
+    lead_time: '',
   });
   const [formFiles, setFormFiles] = useState<File[]>([]);
   const [imageColorIds, setImageColorIds] = useState<ImageColorSelection[]>([]);
@@ -123,7 +124,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
     (imageColorIds.length !== formFiles.length || imageColorIds.some((id) => id === '' || id == null));
 
   const handleCreateSubmit = async () => {
-    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions) {
+    if (!form.title || !form.price || !form.description || !form.product_type_id || !form.dimensions || !form.lead_time) {
       return alert('Please provide all required fields');
     }
     if (missingImageColors) {
@@ -138,6 +139,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       fd.append('description', form.description);
       fd.append('product_type_id', String(form.product_type_id || '1'));
       fd.append('dimensions', form.dimensions);
+      fd.append('lead_time', form.lead_time);
       formFiles.forEach((f) => fd.append('images', f));
       imageColorIds.forEach((cid) => {
         if (typeof cid === 'number') fd.append('image_color_ids', String(cid));
@@ -149,7 +151,7 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
       const created = await createProduct(fd);
       onCreated && onCreated(created);
       onClose();
-      setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '' });
+      setForm({ title: '', price: '', description: '', product_type_id: '', dimensions: '', lead_time: '' });
       setFormFiles([]);
       setImageColorIds([]);
       setImageIsDisplayed([]);
@@ -203,6 +205,14 @@ const ProductCreateDialog: React.FC<Props> = ({ open, onClose, onCreated }) => {
             label="Product Details"
             value={form.dimensions}
             onChange={handleFormChange('dimensions')}
+            fullWidth
+            multiline
+            rows={3}
+          />
+          <TextField
+            label="Lead Time"
+            value={form.lead_time}
+            onChange={handleFormChange('lead_time')}
             fullWidth
             multiline
             rows={3}

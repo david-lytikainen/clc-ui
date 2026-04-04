@@ -5,6 +5,7 @@ import {
   Button,
   CardMedia,
   CircularProgress,
+  Collapse,
   Grid,
   IconButton,
   TextField,
@@ -16,6 +17,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -37,7 +39,80 @@ import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
 
-type DraftValues = { title: string; description: string; price: string; dimensions: string };
+type DraftValues = {
+  title: string;
+  description: string;
+  price: string;
+  dimensions: string;
+  lead_time: string;
+};
+
+type ProductAccordionRowProps = {
+  title: string;
+  text: string | null | undefined;
+};
+
+const ProductAccordionRow: React.FC<ProductAccordionRowProps> = ({ title, text }) => {
+  const [open, setOpen] = useState(false);
+  const hasContent = Boolean(text && String(text).trim());
+  const display = hasContent ? String(text) : '—';
+
+  return (
+    <Box
+      sx={{
+        borderBottom: '1px solid',
+        borderColor: 'rgba(0,0,0,0.12)',
+      }}
+    >
+      <Box
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          py: 1.5,
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.primary' }}>
+          {title}
+        </Typography>
+        <KeyboardArrowDownIcon
+          sx={{
+            color: 'text.secondary',
+            transition: 'transform 0.2s ease',
+            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+          }}
+          fontSize="small"
+        />
+      </Box>
+      <Collapse in={open}>
+        <Typography
+          variant="body2"
+          component="div"
+          sx={{
+            whiteSpace: 'pre-wrap',
+            pb: 2,
+            pt: 0.25,
+            color: 'text.secondary',
+            lineHeight: 1.7,
+          }}
+        >
+          {display}
+        </Typography>
+      </Collapse>
+    </Box>
+  );
+};
 
 function lastImageIndexForColor(imageColorIds: number[], colorId: number): number {
   let last = -1;
@@ -76,7 +151,13 @@ const ProductDetail: React.FC = () => {
   const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingAll, setEditingAll] = useState(false);
-  const [draftValues, setDraftValues] = useState<DraftValues>({ title: '', description: '', price: '', dimensions: '' });
+  const [draftValues, setDraftValues] = useState<DraftValues>({
+    title: '',
+    description: '',
+    price: '',
+    dimensions: '',
+    lead_time: '',
+  });
   const [draftImageIds, setDraftImageIds] = useState<number[]>([]);
   const [draftIsActive, setDraftIsActive] = useState<boolean>(true);
   const [savingAll, setSavingAll] = useState(false);
@@ -146,6 +227,7 @@ const ProductDetail: React.FC = () => {
       description: String(product.description ?? ''),
       price: String(product.price ?? ''),
       dimensions: String(product.dimensions ?? ''),
+      lead_time: String(product.lead_time ?? ''),
     });
     setDraftIsActive(Boolean(product.is_active));
     setDraftImageIds(product.image_ids ? [...product.image_ids] : []);
@@ -213,6 +295,7 @@ const ProductDetail: React.FC = () => {
         description: draftValues.description,
         price: num,
         dimensions: draftValues.dimensions,
+        lead_time: draftValues.lead_time,
         is_active: draftIsActive,
       });
       const originalIds = product.image_ids ?? [];
@@ -286,6 +369,98 @@ const ProductDetail: React.FC = () => {
     }
   };
 
+  const thumbImgSx = {
+    width: 64,
+    height: 64,
+    objectFit: 'cover' as const,
+    cursor: 'pointer' as const,
+    borderRadius: 1,
+  };
+
+  const renderThumbnailColumn = (placement: 'sidebar' | 'below') => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: placement === 'sidebar' ? 'column' : 'row',
+        flexWrap: placement === 'below' ? 'wrap' : 'nowrap',
+        alignItems: placement === 'sidebar' ? 'flex-end' : 'center',
+        justifyContent: placement === 'below' ? 'center' : 'flex-start',
+        pt: placement === 'sidebar' ? 2 : 0,
+        ...(placement === 'below' ? { mt: 2, px: 1 } : {}),
+      }}
+    >
+      {editingAll && product.image_ids?.length ? (
+        getDraftImageUrls().map((url, i) => (
+          <Box
+            key={draftImageIds[i]}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.25,
+              mb: placement === 'sidebar' ? 0.5 : 0,
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <IconButton
+                size="small"
+                onClick={() => moveImageUp(i)}
+                disabled={i === 0}
+                aria-label="Move up"
+                sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
+              >
+                <ArrowUpwardIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => moveImageDown(i)}
+                disabled={i === draftImageIds.length - 1}
+                aria-label="Move down"
+                sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
+              >
+                <ArrowDownwardIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+            <IconButton
+              size="small"
+              onClick={() => removeDraftImage(i)}
+              aria-label="Delete image"
+              sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
+            >
+              <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <Box
+              component="img"
+              src={url}
+              onClick={() => setSelectedImage(url)}
+              sx={{
+                ...thumbImgSx,
+                border: (th) => (selectedImage === url ? `2px solid ${th.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)'),
+              }}
+            />
+          </Box>
+        ))
+      ) : (
+        product.image_urls?.map((url, i) => (
+          <Box
+            key={i}
+            component="img"
+            src={url}
+            onClick={() => {
+              const firstCid = product.product_colors?.[0]?.id ?? product.image_color_ids?.[0] ?? null;
+              const nextCid = (product.image_color_ids ?? [])[i] ?? firstCid;
+              if (nextCid != null) setSelectedColorId(nextCid);
+              setSelectedImage(url);
+            }}
+            sx={{
+              ...thumbImgSx,
+              border: (t) => (selectedImage === url ? `2px solid ${t.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)'),
+            }}
+          />
+        ))
+      )}
+    </Box>
+  );
+
   return (
     <Box>
       <CinnamonModal
@@ -295,82 +470,25 @@ const ProductDetail: React.FC = () => {
         loading={creatingStripeCheckout}
       />
       <Grid container>
-        <Grid item xs={2} sm={2} md={1} sx={{ display: { sm: 'block' } }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', pt: 2 }}>
-            {editingAll && product.image_ids?.length ? (
-              getDraftImageUrls().map((url, i) => (
-                <Box key={draftImageIds[i]} sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mb: 0.5 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => moveImageUp(i)}
-                      disabled={i === 0}
-                      aria-label="Move up"
-                      sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
-                    >
-                      <ArrowUpwardIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => moveImageDown(i)}
-                      disabled={i === draftImageIds.length - 1}
-                      aria-label="Move down"
-                      sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
-                    >
-                      <ArrowDownwardIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={() => removeDraftImage(i)}
-                    aria-label="Delete image"
-                    sx={{ p: 0.25, minWidth: 0, width: 24, height: 24 }}
-                  >
-                    <DeleteOutlineIcon sx={{ fontSize: 18 }} />
-                  </IconButton>
-                  <Box
-                    component="img"
-                    src={url}
-                    onClick={() => setSelectedImage(url)}
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      objectFit: 'cover',
-                      cursor: 'pointer',
-                      borderRadius: 1,
-                      border: (theme) => selectedImage === url ? `2px solid ${theme.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)',
-                    }}
-                  />
-                </Box>
-              ))
-            ) : (
-              product.image_urls?.map((url, i) => (
-                <Box
-                  key={i}
-                  component="img"
-                  src={url}
-                  onClick={() => {
-                    const firstCid = product.product_colors?.[0]?.id ?? product.image_color_ids?.[0] ?? null;
-                    const nextCid = (product.image_color_ids ?? [])[i] ?? firstCid;
-                    if (nextCid != null) setSelectedColorId(nextCid);
-                    setSelectedImage(url);
-                  }}
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    objectFit: 'cover',
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    border: (t) => (selectedImage === url ? `2px solid ${t.palette.primary.main}` : '1px solid rgba(0,0,0,0.08)'),
-                  }}
-                />
-              ))
-            )}
-          </Box>
+        <Grid item md={1} sx={{ display: { xs: 'none', md: 'block' } }}>
+          {renderThumbnailColumn('sidebar')}
         </Grid>
-        <Grid item xs={10} md={4}>
-          <Box sx={{ p: 2, pl: 0 }}>
-            <CardMedia component="img" height="500" image={selectedImage || product.image_urls?.[0]} alt={product.title} />
+        <Grid item xs={12} md={4}>
+          <Box sx={{ p: 2, pl: { xs: 2, md: 0 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <CardMedia
+                component="img"
+                image={selectedImage || product.image_urls?.[0]}
+                alt={product.title}
+                sx={{
+                  height: { xs: 360, md: 500 },
+                  width: { xs: '90%',md: '100%' },
+                  objectFit: 'cover',
+                  borderRadius: 1,
+                }}
+              />
+            </Box>
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>{renderThumbnailColumn('below')}</Box>
           </Box>
         </Grid>
         <Grid item xs={12} md={7}>
@@ -420,20 +538,37 @@ const ProductDetail: React.FC = () => {
                     </IconButton>
                   </>
                 ) : (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    endIcon={<EditIcon />}
-                    onClick={startEditAll}
-                    sx={{
-                      backgroundColor: theme.palette.primary.main,
-                      color: colors.background.white,
-                      textTransform: 'none',
-                      '&:hover': { backgroundColor: theme.palette.primary.dark },
-                    }}
-                  >
-                    Edit
-                  </Button>
+                  <>
+                    <IconButton
+                      onClick={startEditAll}
+                      aria-label="Edit product"
+                      sx={{
+                        display: { xs: 'inline-flex', md: 'none' },
+                        color: colors.background.white,
+                        backgroundColor: theme.palette.primary.main,
+                        width: 40,
+                        height: 40,
+                        '&:hover': { backgroundColor: theme.palette.primary.dark },
+                      }}
+                    >
+                      <EditIcon sx={{ fontSize: 22 }} />
+                    </IconButton>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      endIcon={<EditIcon />}
+                      onClick={startEditAll}
+                      sx={{
+                        display: { xs: 'none', md: 'inline-flex' },
+                        backgroundColor: theme.palette.primary.main,
+                        color: colors.background.white,
+                        textTransform: 'none',
+                        '&:hover': { backgroundColor: theme.palette.primary.dark },
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </>
                 )}
               </Box>
             )}
@@ -441,14 +576,24 @@ const ProductDetail: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
                 {/* Title */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: editingAll ? 'flex-start' : 'center',
+                    gap: 0.5,
+                    flexWrap: 'wrap',
+                    width: '100%',
+                  }}
+                >
                   {editingAll ? (
                     <TextField
                       size="small"
                       value={draftValues.title}
                       onChange={(e) => setDraftValues((prev) => ({ ...prev, title: e.target.value }))}
-                      fullWidth
-                      sx={{ maxWidth: 400 }}
+                      sx={{
+                        width: '70vw',
+                        maxWidth: '100%',
+                      }}
                       autoFocus
                     />
                   ) : (
@@ -528,24 +673,47 @@ const ProductDetail: React.FC = () => {
                       sx={{ maxWidth: 500 }}
                     />
                   ) : (
-                    <Typography variant="subtitle1">{product.description ?? '—'}</Typography>
+                    <Typography variant="subtitle1" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {product.description ?? '—'}
+                    </Typography>
                   )}
                 </Box>
 
-                {/* Product Details */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 2 }}>
-                  {editingAll ? (
+                {/* Product Details + Lead Time (accordions) */}
+                {editingAll ? (
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 500 }}>
                     <TextField
                       size="small"
-                      placeholder="Dimensions"
+                      label="Product Details"
                       value={draftValues.dimensions}
                       onChange={(e) => setDraftValues((prev) => ({ ...prev, dimensions: e.target.value }))}
-                      sx={{ maxWidth: 200 }}
+                      fullWidth
+                      multiline
+                      minRows={3}
                     />
-                  ) : (
-                    <Typography variant="body2" sx={{ fontSize: '1em' }}><strong>Product Details:</strong> {product.dimensions ?? '—'}</Typography>
-                  )}
-                </Box>
+                    <TextField
+                      size="small"
+                      label="Lead Time"
+                      value={draftValues.lead_time}
+                      onChange={(e) => setDraftValues((prev) => ({ ...prev, lead_time: e.target.value }))}
+                      fullWidth
+                      multiline
+                      minRows={3}
+                    />
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      maxWidth: 560,
+                      borderTop: '1px solid',
+                      borderColor: 'rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <ProductAccordionRow title="Product Details" text={product.dimensions} />
+                    <ProductAccordionRow title="Lead Time" text={product.lead_time} />
+                  </Box>
+                )}
 
                 {editingAll && (
                   <Box sx={{ mt: 2 }}>
@@ -564,7 +732,14 @@ const ProductDetail: React.FC = () => {
               </Grid>
               <Grid item md={1}></Grid>
               <Grid item xs={12} md={5}>
-                <Box sx={{ mt: 8 }}>
+                <Box
+                  sx={{
+                    mt: { xs: 0, md: 8 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: { md: 'flex-start' },
+                  }}
+                >
                   <Button type="button" variant="contained"
                     size='large'
                       onClick={async () => {

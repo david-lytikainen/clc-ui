@@ -261,6 +261,7 @@ export interface ProductWithImages {
   description: string;
   price: number;
   dimensions: string;
+  lead_time?: string | null;
   color: string;
   is_active: boolean;
   stripe_price_id: string;
@@ -278,7 +279,7 @@ export const getProductById = async (productId: number): Promise<ProductWithImag
 
 export const updateProduct = async (
   productId: number,
-  data: { title?: string; description?: string; price?: number; dimensions?: string; color?: string; is_active?: boolean }
+  data: { title?: string; description?: string; price?: number; dimensions?: string; lead_time?: string; color?: string; is_active?: boolean }
 ): Promise<ProductWithImages> => {
   const response = await api.patch<ProductWithImages>(`/product/${productId}`, data);
   return response.data;
