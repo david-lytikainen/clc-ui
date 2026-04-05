@@ -16,7 +16,7 @@ const About: React.FC = () => {
         <Typography
           variant="h6"
           component="h2"
-          sx={{ textAlign: 'left', mb: 3, fontWeight: 600 }}
+          sx={{ textAlign: 'center', mb: 3, fontWeight: 600 }}
         >
           Feels Like Home
         </Typography>
@@ -38,6 +38,10 @@ const About: React.FC = () => {
           At Cinnamon Leather Company, we believe the things you carry every day should be familiar,
           dependable, and uniquely yours—something that feels like home. Crafted with real materials and
           thoughtful care, our pieces are made to be lived with and loved for years to come.
+        </Typography>
+
+        <Typography variant="body2" sx={{ textAlign: 'center', mt: 4 }}>
+          <strong>contact: </strong>cinnamonleatherco@gmail.com
         </Typography>
       </Box>
     </Box>

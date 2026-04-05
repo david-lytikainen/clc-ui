@@ -486,6 +486,116 @@ const ProductDetail: React.FC = () => {
     }
   };
 
+  const renderActionButtons = () => (
+    <>
+      <Button
+        type="button"
+        variant="contained"
+        size="large"
+        onClick={async () => {
+          if (adding) return;
+          const cid = resolveCheckoutColorId(product, selectedColorId);
+          if (cid == null) {
+            alert('This product has no color for the cart. Add photos with colors first.');
+            return;
+          }
+          const colorMeta = product.product_colors?.find((c) => c.id === cid);
+          setAdding(true);
+          try {
+            const item = {
+              id: `${product.id}-${cid}`,
+              product_id: product.id,
+              product_title: product.title,
+              image_url: firstImageUrlForColor(product, cid),
+              quantity: 1,
+              price_cents: Math.round(product.price * 100),
+              color_id: cid,
+              color_name: colorMeta?.name,
+              color_hex: colorMeta?.hex,
+            };
+
+            const raw = localStorage.getItem('cart');
+            let cart: any = { items: [] };
+            if (raw) {
+              try {
+                const parsed = JSON.parse(raw);
+                cart.items = parsed.items || parsed || [];
+              } catch (e) {
+                cart.items = [];
+              }
+            }
+            const existing = cart.items.find((i: any) => i.product_id === item.product_id && i.color_id === cid);
+            if (existing) existing.quantity = (existing.quantity || 0) + 1;
+            else cart.items.unshift(item);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: cart.items } }));
+
+            if (isAuthenticated) {
+              try {
+                await syncCart(cart.items);
+              } catch (e) {
+                console.warn('Cart sync failed', e);
+              }
+            }
+          } finally {
+            setAdding(false);
+          }
+        }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '50px',
+          width: { xs: '100%', md: '150px' },
+          backgroundColor: theme.palette.info.main,
+          color: colors.background.white,
+          textTransform: 'none',
+          fontSize: '1.1em',
+          '&:hover': {
+            backgroundColor: theme.palette.info.dark,
+          },
+        }}
+      >
+        {adding ? 'Adding...' : 'Add to Cart'}
+      </Button>
+      <Button
+        type="button"
+        variant="contained"
+        sx={{
+          mt: { xs: 0, md: 1 },
+          display: 'flex',
+          flexDirection: 'column',
+          height: '50px',
+          width: { xs: '100%', md: '150px' },
+          backgroundColor: theme.palette.primary.main,
+          color: colors.background.white,
+          textTransform: 'none',
+          fontSize: '1.1em',
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+        onClick={() => {
+          if (!product || !product.stripe_price_id) {
+            alert('No price configured for this product');
+            return;
+          }
+          const cid = resolveCheckoutColorId(product, selectedColorId);
+          if (cid == null) {
+            alert('This product has no color for checkout. Add photos with colors first.');
+            return;
+          }
+          setShippingZipOpen(true);
+        }}
+      >
+        {creatingStripeCheckout ? (
+          <CircularProgress size={18} sx={{ color: colors.background.white }} />
+        ) : (
+          'Buy Now'
+        )}
+      </Button>
+    </>
+  );
+
   return (
     <Box>
       <ShippingZipModal
@@ -661,7 +771,7 @@ const ProductDetail: React.FC = () => {
                         —
                       </Typography>
                     ) : (
-                      <FormControl size="small" sx={{ minWidth: 240 }}>
+                      <FormControl size="small" sx={{ width: { xs: '100%', md: 'auto' }, minWidth: { md: 240 } }}>
                         <Select
                           value={selectedColorId ?? product.product_colors[0].id}
                           disabled={editingAll}
@@ -692,6 +802,19 @@ const ProductDetail: React.FC = () => {
                       </FormControl>
                     )}
                   </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: { xs: 'flex', md: 'none' },
+                    flexDirection: 'row',
+                    gap: 1,
+                    mt: 2,
+                    width: '100%',
+                    '& > *': { flex: 1, minWidth: 0 },
+                  }}
+                >
+                  {renderActionButtons()}
                 </Box>
 
                 {/* Description */}
@@ -769,88 +892,12 @@ const ProductDetail: React.FC = () => {
                 <Box
                   sx={{
                     mt: { xs: 0, md: 8 },
-                    display: 'flex',
+                    display: { xs: 'none', md: 'flex' },
                     flexDirection: 'column',
                     alignItems: { md: 'flex-start' },
                   }}
                 >
-                  <Button type="button" variant="contained"
-                    size='large'
-                      onClick={async () => {
-                        if (adding) return;
-                        const cid = resolveCheckoutColorId(product, selectedColorId);
-                        if (cid == null) {
-                          alert('This product has no color for the cart. Add photos with colors first.');
-                          return;
-                        }
-                        const colorMeta = product.product_colors?.find((c) => c.id === cid);
-                        setAdding(true);
-                        try {
-                          const item = {
-                            id: `${product.id}-${cid}`,
-                            product_id: product.id,
-                            product_title: product.title,
-                            image_url: firstImageUrlForColor(product, cid),
-                            quantity: 1,
-                            price_cents: Math.round(product.price * 100),
-                            color_id: cid,
-                            color_name: colorMeta?.name,
-                            color_hex: colorMeta?.hex,
-                          };
-
-                          const raw = localStorage.getItem('cart');
-                          let cart: any = { items: [] };
-                          if (raw) {
-                            try { const parsed = JSON.parse(raw); cart.items = parsed.items || parsed || []; } catch (e) { cart.items = []; }
-                          }
-                          const existing = cart.items.find((i: any) => i.product_id === item.product_id && i.color_id === cid);
-                          if (existing) existing.quantity = (existing.quantity || 0) + 1;
-                          else cart.items.unshift(item);
-                          localStorage.setItem('cart', JSON.stringify(cart));
-                          window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { items: cart.items } }));
-
-                          if (isAuthenticated) {
-                            try { await syncCart(cart.items); } catch (e) { console.warn('Cart sync failed', e); }
-                          }
-                        } finally { setAdding(false); }
-                      }}
-                      sx={{
-                      display: 'flex', flexDirection: 'column', height: '50px', width: '150px',
-                      backgroundColor: theme.palette.info.main, color: colors.background.white,
-                      textTransform: 'none',
-                      fontSize: '1.1em',
-                      '&:hover': {
-                        backgroundColor: theme.palette.info.dark,
-                      },
-                      }}
-                  >
-                      {adding ? 'Adding...' : 'Add to Cart'}
-                  </Button>
-                  <Button type="button" variant="contained"
-                    sx={{
-                      mt: 1, display: 'flex', flexDirection: 'column', height: '50px', width: '150px',
-                      backgroundColor: theme.palette.primary.main, color: colors.background.white,
-                      textTransform: 'none', 
-                      fontSize: '1.1em',
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => {
-                      if (!product || !product.stripe_price_id) {
-                        alert('No price configured for this product');
-                        return;
-                      }
-                      const cid = resolveCheckoutColorId(product, selectedColorId);
-                      if (cid == null) {
-                        alert('This product has no color for checkout. Add photos with colors first.');
-                        return;
-                      }
-                      setShippingZipOpen(true);
-                    }}
-                  >
-                    {creatingStripeCheckout ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : 'Buy Now'}
-                  </Button>
+                  {renderActionButtons()}
                 </Box>
               </Grid>
             </Grid>
