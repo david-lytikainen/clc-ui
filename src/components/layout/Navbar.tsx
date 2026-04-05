@@ -359,10 +359,32 @@ const Navbar: React.FC = () => {
             <Box
               sx={{
                 position: 'absolute',
+                left: 12,
+                top: 16,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <IconButton
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+                sx={{
+                  color: theme.palette.text.primary,
+                  '&:hover': {
+                    color: theme.palette.secondary.main,
+                    backgroundColor: 'transparent',
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+            <Box
+              sx={{
+                position: 'absolute',
                 right: 12,
                 top: 16,
                 display: 'flex',
-                flexDirection: 'row',
                 alignItems: 'center',
               }}
             >
@@ -381,22 +403,9 @@ const Navbar: React.FC = () => {
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
-              <IconButton
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
-                sx={{
-                  color: theme.palette.text.primary,
-                  '&:hover': {
-                    color: theme.palette.secondary.main,
-                    backgroundColor: 'transparent',
-                  },
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
             </Box>
             <Drawer
-              anchor="right"
+              anchor="left"
               open={mobileMenuOpen}
               onClose={() => setMobileMenuOpen(false)}
               PaperProps={{ sx: { width: '60vw', maxWidth: 360, p: 2 } }}
@@ -439,9 +448,9 @@ const Navbar: React.FC = () => {
                   <Collapse in={mobileUserOpen}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                       <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Profile</Button>
-                      <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>My Orders</Button>
+                      <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>My Orders</Button>
                       {isAdmin() && (
-                        <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Admin Tools</Button>
+                        <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>Admin Tools</Button>
                       )}
                       <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Sign out</Button>
                     </Box>
