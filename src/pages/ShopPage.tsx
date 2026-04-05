@@ -17,7 +17,7 @@ const PATH_TO_TYPE: Record<string, string[] | null> = {
 
 const PATH_TO_TITLE: Record<string, string> = {
   '/shop': 'Shop All',
-  '/leather-bags': 'Bags',
+  '/leather-bags': 'Handbags',
   '/wallets-accessories': 'Wallets & Accessories',
   '/your-favorites': 'Your Favorites',
   '/our-favorites': 'Our Favorites',
