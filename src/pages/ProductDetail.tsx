@@ -38,6 +38,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
+import ShippingZipModal from '../components/ShippingZipModal';
 
 type DraftValues = {
   title: string;
@@ -149,6 +150,7 @@ const ProductDetail: React.FC = () => {
   const [creatingStripeCheckout, setCreatingStripeCheckout] = useState<boolean>(false);
   const { isAuthenticated, isAdmin, user, setUserFromPayload } = useAuth();
   const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
+  const [shippingZipOpen, setShippingZipOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingAll, setEditingAll] = useState(false);
   const [draftValues, setDraftValues] = useState<DraftValues>({
@@ -461,8 +463,40 @@ const ProductDetail: React.FC = () => {
     </Box>
   );
 
+  const runBuyNowWithZip = async (zip: string) => {
+    if (!product?.stripe_price_id) return;
+    const cid = resolveCheckoutColorId(product, selectedColorId);
+    if (cid == null) {
+      alert('This product has no color for checkout. Add photos with colors first.');
+      return;
+    }
+    setCreatingStripeCheckout(true);
+    try {
+      const data = await createCheckoutSession(product.stripe_price_id, 1, undefined, cid, zip);
+      if (data && data.url) window.location.href = data.url;
+      else {
+        console.error(data);
+        alert((data && data.error) || 'Failed to create checkout session');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
+    } finally {
+      setCreatingStripeCheckout(false);
+    }
+  };
+
   return (
     <Box>
+      <ShippingZipModal
+        open={shippingZipOpen}
+        onClose={() => !creatingStripeCheckout && setShippingZipOpen(false)}
+        onNext={(zip) => {
+          setShippingZipOpen(false);
+          void runBuyNowWithZip(zip);
+        }}
+        loading={creatingStripeCheckout}
+      />
       <CinnamonModal
         open={cinnamonModalOpen}
         onClose={() => setCinnamonModalOpen(false)}
@@ -802,7 +836,7 @@ const ProductDetail: React.FC = () => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={async () => {
+                    onClick={() => {
                       if (!product || !product.stripe_price_id) {
                         alert('No price configured for this product');
                         return;
@@ -812,30 +846,7 @@ const ProductDetail: React.FC = () => {
                         alert('This product has no color for checkout. Add photos with colors first.');
                         return;
                       }
-                      // const needCinnamonAnswer = user == null || user.allergic_to_cinnamon === undefined || user.allergic_to_cinnamon === null;
-                      // if (needCinnamonAnswer) {
-                      //   setCinnamonModalOpen(true);
-                      //   return;
-                      // }
-                      try {
-                        setCreatingStripeCheckout(true);
-                        const data = await createCheckoutSession(
-                          product.stripe_price_id,
-                          1,
-                          undefined,
-                          cid
-                        );
-                        if (data && data.url) window.location.href = data.url;
-                        else {
-                          console.error(data);
-                          alert((data && data.error) || 'Failed to create checkout session');
-                        }
-                      } catch (err) {
-                        console.error(err);
-                        alert('Network error');
-                      } finally {
-                        setCreatingStripeCheckout(false);
-                      }
+                      setShippingZipOpen(true);
                     }}
                   >
                     {creatingStripeCheckout ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : 'Buy Now'}

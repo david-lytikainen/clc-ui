@@ -302,26 +302,35 @@ export interface CheckoutSession {
   error?: string;
 }
 
+export const validateShippingZip = async (zip: string): Promise<{ valid: boolean; zone?: number }> => {
+  const response = await api.post<{ valid: boolean; zone?: number }>('/validate-shipping-zip', { zip });
+  return response.data;
+};
+
 export const createCheckoutSession = async (
   priceId: string,
   quantity = 1,
   allergicToCinnamon?: boolean,
-  colorId?: number
+  colorId?: number,
+  shippingZip?: string
 ): Promise<CheckoutSession> => {
   const body: Record<string, unknown> = { quantity };
   if (colorId !== undefined) body.color_id = colorId;
   if (allergicToCinnamon !== undefined) body.allergic_to_cinnamon = allergicToCinnamon;
+  if (shippingZip) body.shipping_zip = shippingZip;
   const response = await api.post(`/create-checkout-session/${priceId}`, body);
   return response.data;
 };
 
 export const createCartCheckoutSession = async (
   items: { product_id: number; quantity: number; color_id: number }[],
-  allergicToCinnamon?: boolean
+  allergicToCinnamon?: boolean,
+  shippingZip?: string
 ): Promise<{ id: string; url: string }> => {
   const response = await api.post('/create-cart-checkout-session', {
     items,
     ...(allergicToCinnamon !== undefined && { allergic_to_cinnamon: allergicToCinnamon }),
+    ...(shippingZip && { shipping_zip: shippingZip }),
   });
   return response.data;
 };
