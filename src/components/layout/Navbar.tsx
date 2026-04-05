@@ -447,12 +447,12 @@ const Navbar: React.FC = () => {
                   </Button>
                   <Collapse in={mobileUserOpen}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Profile</Button>
+                      <Button onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>Profile</Button>
                       <Button onClick={() => { navigate('/orders'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>My Orders</Button>
                       {isAdmin() && (
                         <Button onClick={() => { navigate('/admin/tools'); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>Admin Tools</Button>
                       )}
-                      <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: 0 }}>Sign out</Button>
+                      <Button onClick={() => { signOut(); setMobileMenuOpen(false); }} sx={{ color: theme.palette.text.primary, textTransform: 'none', justifyContent: 'flex-start', py: .75 }}>Sign out</Button>
                     </Box>
                   </Collapse>
                 </>
