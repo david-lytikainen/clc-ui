@@ -18,6 +18,11 @@ import Profile from './pages/Profile';
 import AdminTools from './pages/AdminTools';
 import EmailVerified from './pages/EmailVerified';
 import About from './pages/About';
+import LeadTime from './pages/LeadTime';
+import LeatherCareInstructions from './pages/LeatherCareInstructions';
+import ReturnPolicy from './pages/ReturnPolicy';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 function App() {
   
@@ -69,6 +74,11 @@ function App() {
             <Route path="/your-favorites" element={<ShopPage />} />
             <Route path="/our-favorites" element={<ShopPage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/lead-time" element={<LeadTime />} />
+            <Route path="/leather-care" element={<LeatherCareInstructions />} />
+            <Route path="/return-policy" element={<ReturnPolicy />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/orders" element={<MyOrders />} />
             <Route path="/orders/:orderNumber" element={<OrderDetail />} />
