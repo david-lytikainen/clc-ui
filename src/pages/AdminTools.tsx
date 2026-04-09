@@ -45,7 +45,7 @@ const AdminTools: React.FC = () => {
   const [yourFavoritesOpen, setYourFavoritesOpen] = useState(false);
   const [ourFavoritesOpen, setOurFavoritesOpen] = useState(false);
   const [inactiveProductsOpen, setInactiveProductsOpen] = useState(false);
-  const [hideDelivered, setHideDelivered] = useState(false);
+  const [hideDelivered, setHideDelivered] = useState(true);
   const [dateOrder, setDateOrder] = useState<'asc' | 'desc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [inactiveProducts, setInactiveProducts] = useState<ProductCard[]>([]);

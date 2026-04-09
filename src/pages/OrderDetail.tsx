@@ -152,67 +152,72 @@ const OrderDetail: React.FC = () => {
         </Typography>
       )}
       {(isAdmin() || orders[0]?.tracking_url) && (
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
           {isAdmin() ? (
             <>
-              <TextField
-                size="small"
-                placeholder="Tracking URL (e.g. UPS link)"
-                value={trackingInput}
-                onChange={(e) => setTrackingInput(e.target.value)}
-                disabled={savingField === 'tracking'}
-                sx={{ minWidth: 320 }}
-                helperText={savingField === 'tracking' ? 'Saving…' : undefined}
-              />
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => handleSaveTracking(trackingInput)}
-                disabled={savingField === 'tracking'}
-                sx={{
-                  minWidth: 72,
-                  height: 40,
-                  transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                  ...(savedField === 'tracking'
-                    ? {
-                        backgroundColor: theme.palette.secondary.main,
-                        color: '#fff',
-                        borderColor: theme.palette.secondary.main,
-                        '&:hover': {
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TextField
+                  size="small"
+                  placeholder="Tracking URL (e.g. UPS link)"
+                  value={trackingInput}
+                  onChange={(e) => setTrackingInput(e.target.value)}
+                  disabled={savingField === 'tracking'}
+                  sx={{ minWidth: 320 }}
+                  helperText={savingField === 'tracking' ? 'Saving…' : undefined}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => handleSaveTracking(trackingInput)}
+                  disabled={savingField === 'tracking'}
+                  sx={{
+                    minWidth: 72,
+                    height: 40,
+                    transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
+                    ...(savedField === 'tracking'
+                      ? {
                           backgroundColor: theme.palette.secondary.main,
                           color: '#fff',
                           borderColor: theme.palette.secondary.main,
-                        },
-                      }
-                    : {}),
-                }}
-              >
-                <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
-                  <Box
-                    component="span"
-                    sx={{
-                      position: 'absolute',
-                      opacity: savedField === 'tracking' ? 0 : 1,
-                      transition: 'opacity 0.25s ease',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    Save
+                          '&:hover': {
+                            backgroundColor: theme.palette.secondary.main,
+                            color: '#fff',
+                            borderColor: theme.palette.secondary.main,
+                          },
+                        }
+                      : {}),
+                  }}
+                >
+                  <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
+                    <Box
+                      component="span"
+                      sx={{
+                        position: 'absolute',
+                        opacity: savedField === 'tracking' ? 0 : 1,
+                        transition: 'opacity 0.25s ease',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      Save
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{
+                        position: 'absolute',
+                        opacity: savedField === 'tracking' ? 1 : 0,
+                        transition: 'opacity 0.25s ease',
+                        display: 'inline-flex',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <CheckIcon sx={{ fontSize: 20 }} />
+                    </Box>
                   </Box>
-                  <Box
-                    component="span"
-                    sx={{
-                      position: 'absolute',
-                      opacity: savedField === 'tracking' ? 1 : 0,
-                      transition: 'opacity 0.25s ease',
-                      display: 'inline-flex',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <CheckIcon sx={{ fontSize: 20 }} />
-                  </Box>
-                </Box>
-              </Button>
+                </Button>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                Remember Save this before saving &quot;Shipped&quot; below
+              </Typography>
             </>
           ) : (
             <Typography variant="body2">

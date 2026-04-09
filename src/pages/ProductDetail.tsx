@@ -183,7 +183,7 @@ const ProductDetail: React.FC = () => {
         ]);
         const firstCid = stateCid != null && validColorIds.has(stateCid)
           ? stateCid
-          : (res.product_colors?.[0]?.id ?? res.image_color_ids?.[0] ?? null);
+          : (res.image_color_ids?.[0] ?? null);
         setSelectedColorId(firstCid);
         if (!res.image_urls?.length) {
           setSelectedImage(null);
@@ -747,7 +747,7 @@ const ProductDetail: React.FC = () => {
 
                 {/* Price */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-                  {editingAll ? (
+                  {/* {editingAll ? (
                     <TextField
                       size="small"
                       type="number"
@@ -757,10 +757,11 @@ const ProductDetail: React.FC = () => {
                       sx={{ maxWidth: 120 }}
                     />
                   ) : (
-                    <Typography sx={{ mt: 1, fontSize: '1.2em' }}>
-                      <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
-                    </Typography>
-                  )}
+                    
+                  )} */}
+                  <Typography sx={{ mt: 1, fontSize: '1.2em' }}>
+                    <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
+                  </Typography>
                 </Box>
 
                 {/* Color */}
