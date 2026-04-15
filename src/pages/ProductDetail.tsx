@@ -38,7 +38,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
-import ShippingZipModal from '../components/ShippingZipModal';
 
 type DraftValues = {
   title: string;
@@ -150,7 +149,6 @@ const ProductDetail: React.FC = () => {
   const [creatingStripeCheckout, setCreatingStripeCheckout] = useState<boolean>(false);
   const { isAuthenticated, isAdmin, user, setUserFromPayload } = useAuth();
   const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
-  const [shippingZipOpen, setShippingZipOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingAll, setEditingAll] = useState(false);
   const [draftValues, setDraftValues] = useState<DraftValues>({
@@ -463,7 +461,7 @@ const ProductDetail: React.FC = () => {
     </Box>
   );
 
-  const runBuyNowWithZip = async (zip: string) => {
+  const runBuyNow = async () => {
     if (!product?.stripe_price_id) return;
     const cid = resolveCheckoutColorId(product, selectedColorId);
     if (cid == null) {
@@ -472,7 +470,7 @@ const ProductDetail: React.FC = () => {
     }
     setCreatingStripeCheckout(true);
     try {
-      const data = await createCheckoutSession(product.stripe_price_id, 1, undefined, cid, zip);
+      const data = await createCheckoutSession(product.stripe_price_id, 1, undefined, cid);
       if (data && data.url) window.location.href = data.url;
       else {
         console.error(data);
@@ -584,7 +582,7 @@ const ProductDetail: React.FC = () => {
             alert('This product has no color for checkout. Add photos with colors first.');
             return;
           }
-          setShippingZipOpen(true);
+          void runBuyNow();
         }}
       >
         {creatingStripeCheckout ? (
@@ -598,15 +596,6 @@ const ProductDetail: React.FC = () => {
 
   return (
     <Box>
-      <ShippingZipModal
-        open={shippingZipOpen}
-        onClose={() => !creatingStripeCheckout && setShippingZipOpen(false)}
-        onNext={(zip) => {
-          setShippingZipOpen(false);
-          void runBuyNowWithZip(zip);
-        }}
-        loading={creatingStripeCheckout}
-      />
       <CinnamonModal
         open={cinnamonModalOpen}
         onClose={() => setCinnamonModalOpen(false)}
@@ -747,7 +736,7 @@ const ProductDetail: React.FC = () => {
 
                 {/* Price */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-                  {/* {editingAll ? (
+                  {editingAll ? (
                     <TextField
                       size="small"
                       type="number"
@@ -757,11 +746,10 @@ const ProductDetail: React.FC = () => {
                       sx={{ maxWidth: 120 }}
                     />
                   ) : (
-                    
-                  )} */}
-                  <Typography sx={{ mt: 1, fontSize: '1.2em' }}>
-                    <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
-                  </Typography>
+                    <Typography sx={{ mt: 1, fontSize: '1.2em' }}>
+                      <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(product.price)}</strong>
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Color */}
