@@ -216,7 +216,7 @@ const OrderDetail: React.FC = () => {
                 </Button>
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
-                Remember Save this before saving &quot;Shipped&quot; below
+                Remember to Save this before saving &quot;Shipped&quot; below
               </Typography>
             </>
           ) : (
