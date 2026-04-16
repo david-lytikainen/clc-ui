@@ -8,6 +8,7 @@ import useProducts from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import SignInModal from '../components/SignInModal';
 import { theme } from '../styles/theme';
+import { colors } from '../styles/colors';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -131,15 +132,23 @@ const Home: React.FC = () => {
             onClick={() => navigate('/shop')}
             aria-label="Shop the collection"
             sx={{
-              borderRadius: '20px',
               px: 2.5,
               py: 1,
-              bgcolor: 'rgba(0, 0, 0, 0.02)',
-              border: '1px solid rgba(0, 0, 0, 0.10)',
+              borderRadius: '9999px',
+              bgcolor: 'transparent',
+              color: 'inherit',
+              transition: 'background-color 120ms ease, color 120ms ease',
               '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.04)',
-                transform: 'translateY(-.5px)',
-                boxShadow: 1,
+                bgcolor: colors.primary.main,
+                color: '#fff',
+              },
+              '&:active': {
+                bgcolor: colors.primary.main,
+                color: '#fff',
+              },
+              '&:focus-visible': {
+                outline: `2px solid ${colors.primary.main}`,
+                outlineOffset: 3,
               },
             }}
           >
