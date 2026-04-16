@@ -9,7 +9,6 @@ import { getCart, syncCart, createCartCheckoutSession, updateAllergicToCinnamon,
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import CinnamonModal from '../components/CinnamonModal';
-import ShippingZipModal from '../components/ShippingZipModal';
 
 interface CartItem {
   id: number | string;
@@ -30,7 +29,6 @@ const Cart: React.FC = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [cinnamonModalOpen, setCinnamonModalOpen] = useState(false);
-  const [shippingZipOpen, setShippingZipOpen] = useState(false);
   const { isAuthenticated, user, setUserFromPayload } = useAuth();
 
   useEffect(() => {
@@ -108,7 +106,7 @@ const Cart: React.FC = () => {
     }
   };
 
-  const startCheckoutWithZip = async (zip: string) => {
+  const startCheckout = async () => {
     if (!items?.length) return;
     setCheckoutLoading(true);
     setCheckoutError(null);
@@ -121,9 +119,7 @@ const Cart: React.FC = () => {
       }
       if (isAuthenticated) await syncCart(items);
       const { url } = await createCartCheckoutSession(
-        items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, color_id: i.color_id })),
-        undefined,
-        zip
+        items.map((i) => ({ product_id: i.product_id, quantity: i.quantity, color_id: i.color_id }))
       );
       if (url) window.location.href = url;
     } catch (e: any) {
@@ -136,15 +132,6 @@ const Cart: React.FC = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <ShippingZipModal
-        open={shippingZipOpen}
-        onClose={() => !checkoutLoading && setShippingZipOpen(false)}
-        onNext={(zip) => {
-          setShippingZipOpen(false);
-          void startCheckoutWithZip(zip);
-        }}
-        loading={checkoutLoading}
-      />
       <CinnamonModal
         open={cinnamonModalOpen}
         onClose={() => setCinnamonModalOpen(false)}
@@ -319,14 +306,7 @@ const Cart: React.FC = () => {
             sx={{ ml: 1 }}
             disabled={checkoutLoading}
             onClick={() => {
-              if (!items?.length) return;
-              const missingColor = items.filter((i) => i.color_id == null);
-              if (missingColor.length) {
-                setCheckoutError('Some cart items are missing a color. Remove those lines and add the products again from the shop.');
-                return;
-              }
-              setCheckoutError(null);
-              setShippingZipOpen(true);
+              void startCheckout();
             }}
           >
             {checkoutLoading ? <CircularProgress size={18} sx={{ color: colors.background.white }} /> : `Proceed to checkout (${items.reduce((s, i) => s + i.quantity, 0)} items)`}

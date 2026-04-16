@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton, Button, useMediaQuery } from '@mui/material';
+import { Box, Typography, IconButton, Button, ButtonBase, useMediaQuery } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { getBannerPictures, getFooterPictures, type BannerPictureItem, type FooterPictureItem } from '../services/api';
@@ -126,9 +126,28 @@ const Home: React.FC = () => {
 
       {/* Shop the Collection – 1 visible on mobile, 4 on md+, slide with arrows */}
       <Box sx={{ py: 4, px: { xs: 1, sm: 2 } }}>
-        <Typography variant="h4" sx={{ textAlign: 'center', mb: 0, pb: 0 }}>
-          Shop the Collection
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <ButtonBase
+            onClick={() => navigate('/shop')}
+            aria-label="Shop the collection"
+            sx={{
+              borderRadius: '20px',
+              px: 2.5,
+              py: 1,
+              bgcolor: 'rgba(0, 0, 0, 0.02)',
+              border: '1px solid rgba(0, 0, 0, 0.10)',
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.04)',
+                transform: 'translateY(-.5px)',
+                boxShadow: 1,
+              },
+            }}
+          >
+            <Typography variant="h4" sx={{ textAlign: 'center', mb: 0, pb: 0 }}>
+              Shop the Collection
+            </Typography>
+          </ButtonBase>
+        </Box>
         <Typography sx={{ textAlign: 'center', pt: 0, mb: 2, fontFamily: 'Brush Script MT', fontWeight: '50', opacity: '70%', fontSize: '1.6em' }}>
           timeless pieces for everyday life
         </Typography>

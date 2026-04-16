@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Link } from '@mui/material';
+import { Box, IconButton, Link } from '@mui/material';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import InstagramIcon from '@mui/icons-material/Instagram';
 import { colors } from '../../styles/colors';
 
 const FOOTER_LINKS = [
@@ -68,6 +70,41 @@ const Footer: React.FC = () => {
             </Link>
           ),
         )}
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mt: 1.2,
+        }}
+      >
+        <IconButton
+          component="a"
+          href="https://www.facebook.com/profile.php?id=61572111125981"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+          sx={{
+            color: colors.primary.main,
+            '&:hover': { color: colors.primary.dark, bgcolor: 'rgba(194, 96, 2, 0.06)' },
+          }}
+        >
+          <FacebookIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+        <IconButton
+          component="a"
+          href="https://www.instagram.com/cinnamonleatherco/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          sx={{
+            color: colors.primary.main,
+            '&:hover': { color: colors.primary.dark, bgcolor: 'rgba(194, 96, 2, 0.06)' },
+          }}
+        >
+          <InstagramIcon sx={{ fontSize: 20 }} />
+        </IconButton>
       </Box>
     </Box>
   );

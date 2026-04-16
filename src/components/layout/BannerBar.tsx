@@ -3,12 +3,6 @@ import { Box, Typography } from '@mui/material';
 import { getBanner } from '../../services/api';
 import { colors } from '../../styles/colors';
 
-const COLOR_MAP: Record<string, string> = {
-  primary: colors.primary.main,
-  primary_dark: colors.primary.dark,
-  secondary: colors.secondary.main,
-  secondary_dark: colors.secondary.dark,
-};
 
 const BannerBar: React.FC = () => {
   const [banner, setBanner] = useState<{ text: string; background_color: string } | null>(null);
@@ -32,7 +26,7 @@ const BannerBar: React.FC = () => {
 
   if (!banner) return null;
 
-  const bgColor = COLOR_MAP[banner.background_color] || colors.primary.main;
+  const bgColor = banner.background_color;
   const isDark = bgColor === colors.primary.dark || bgColor === colors.secondary.dark;
   const textColor = isDark ? '#fff' : colors.text.primary;
 

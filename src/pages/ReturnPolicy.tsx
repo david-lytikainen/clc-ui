@@ -32,7 +32,7 @@ const ReturnPolicy: React.FC = () => {
           We want you to love your purchase! As a small business, your satisfaction means everything to us.
           If something isn&apos;t right with your order, please reach out—we&apos;d love the opportunity to fix
           it. To begin a return, simply email us. Returns are accepted within 7 days of delivery and are subject
-          to a 15% restocking fee.
+          to a 20% restocking fee.
         </Typography>
 
         <Typography variant="body1" sx={{ textAlign: 'left', mb: 2, lineHeight: 1.7 }}>
@@ -61,13 +61,6 @@ const ReturnPolicy: React.FC = () => {
           After we receive and inspect your return, we&apos;ll notify you and issue a refund to your original
           payment method. Please keep in mind that processing times may vary depending on your bank or credit
           card provider.
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{ textAlign: 'center', mt: 4, fontStyle: 'italic', lineHeight: 1.7 }}
-        >
-          Shipping & handling fees are non-refundable.
         </Typography>
       </Box>
     </Box>

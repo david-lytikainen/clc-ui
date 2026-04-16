@@ -6,7 +6,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import CheckIcon from '@mui/icons-material/Check';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { getAdminOrders, getBanner, createBanner, getInactiveProductsAdmin, updateProduct, type BannerBackgroundColor, type ProductCard } from '../services/api';
+import { getAdminOrders, getBanner, createBanner, getInactiveProductsAdmin, updateProduct, type ProductCard } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../styles/colors';
 import HomeAdmin from '../components/admin/HomeAdmin';
@@ -17,12 +17,9 @@ import OurFavoritesAdmin from '../components/admin/OurFavoritesAdmin';
 const PER_PAGE = 10;
 const SAVED_FEEDBACK_MS = 1500;
 
-const BANNER_COLOR_OPTIONS: { value: BannerBackgroundColor; label: string; hex: string }[] = [
-  { value: 'primary', label: 'Logo', hex: colors.primary.main },
-  { value: 'primary_dark', label: 'Dark logo', hex: colors.primary.dark },
-  { value: 'secondary', label: 'Green', hex: colors.secondary.main },
-  { value: 'secondary_dark', label: 'Dark green', hex: colors.secondary.dark },
-];
+const BANNER_COLOR_OPTIONS = [
+  colors.primary.main, colors.primary.dark, colors.secondary.main, colors.secondary.dark, colors.background.default
+] as const;
 
 const AdminTools: React.FC = () => {
   const theme = useTheme();
@@ -33,7 +30,7 @@ const AdminTools: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [bannerOn, setBannerOn] = useState(false);
   const [bannerText, setBannerText] = useState('');
-  const [bannerColor, setBannerColor] = useState<BannerBackgroundColor>('primary');
+  const [bannerColor, setBannerColor] = useState<string>(BANNER_COLOR_OPTIONS[0]);
   const [bannerLoading, setBannerLoading] = useState(false);
   const [savingBanner, setSavingBanner] = useState(false);
   const [savedBanner, setSavedBanner] = useState(false);
@@ -73,7 +70,7 @@ const AdminTools: React.FC = () => {
         if (res.banner) {
           setBannerOn(res.banner.is_active);
           setBannerText(res.banner.text);
-          setBannerColor(res.banner.background_color as BannerBackgroundColor);
+          setBannerColor(res.banner.background_color || BANNER_COLOR_OPTIONS[0]);
         }
       })
       .finally(() => setBannerLoading(false));
@@ -99,7 +96,7 @@ const AdminTools: React.FC = () => {
   const handleSaveBanner = () => {
     if (!isAdmin()) return;
     setSavingBanner(true);
-    createBanner({ is_active: bannerOn, text: bannerText, background_color: bannerColor })
+    createBanner({ is_active: bannerOn, text: bannerText, background_color: bannerColor as any })
       .then(() => {
         setSavedBanner(true);
         if (savedBannerTimeoutRef.current) clearTimeout(savedBannerTimeoutRef.current);
@@ -513,10 +510,10 @@ const AdminTools: React.FC = () => {
                   size="small"
                   sx={toggleButtonSelectedSx}
                 >
-                  {BANNER_COLOR_OPTIONS.map((opt) => (
-                    <ToggleButton key={opt.value} value={opt.value} sx={{ textTransform: 'none' }}>
+                  {BANNER_COLOR_OPTIONS.map((hex) => (
+                    <ToggleButton key={hex} value={hex} sx={{ textTransform: 'none' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <Box sx={{ width: 14, height: 14, borderRadius: 0.5, bgcolor: opt.hex, border: '1px solid rgba(0,0,0,0.2)' }} />
+                        <Box sx={{ width: 14, height: 14, borderRadius: 0.5, bgcolor: hex, border: '1px solid rgba(0,0,0,0.2)' }} />
                         
                       </Box>
                     </ToggleButton>
