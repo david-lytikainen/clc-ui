@@ -134,21 +134,11 @@ const Home: React.FC = () => {
             sx={{
               px: 2.5,
               py: 1,
-              borderRadius: '9999px',
               bgcolor: 'transparent',
               color: 'inherit',
-              transition: 'background-color 120ms ease, color 120ms ease',
+              transition: 'color 120ms ease',
               '&:hover': {
-                bgcolor: colors.primary.main,
-                color: '#fff',
-              },
-              '&:active': {
-                bgcolor: colors.primary.main,
-                color: '#fff',
-              },
-              '&:focus-visible': {
-                outline: `2px solid ${colors.primary.main}`,
-                outlineOffset: 3,
+                color: colors.primary.main,
               },
             }}
           >
