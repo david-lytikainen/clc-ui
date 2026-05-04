@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, CircularProgress, List, ListItem, Grid, FormControl, Select, MenuItem, TextField, IconButton, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CheckIcon from '@mui/icons-material/Check';
+import { Tooltip } from 'react-tooltip';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderByNumber, getAdminOrderByNumber, updateAdminOrder, Order } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -132,6 +133,10 @@ const OrderDetail: React.FC = () => {
   const orders = data.orders;
   const shippingAddress = formatShippingAddress(orders[0]?.shipping_address);
   const notes: string[] = Array.isArray(orders[0]?.comments) ? orders[0].comments : (orders[0]?.comments ? [orders[0].comments] : []);
+  const trackingUrlSaved = (orders[0]?.tracking_url ?? '').trim().length > 0;
+  const statusRequiresTracking = statusSelect === 'Shipped' || statusSelect === 'Delivered';
+  const disableStatusSaveForMissingTracking = statusRequiresTracking && !trackingUrlSaved;
+  const statusSaveTooltipId = 'order-status-save-tooltip';
 
   return (
     <Box sx={{ p: 4 }}>
@@ -215,9 +220,6 @@ const OrderDetail: React.FC = () => {
                   </Box>
                 </Button>
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
-                Remember to Save this before saving &quot;Shipped&quot; below
-              </Typography>
             </>
           ) : (
             <Typography variant="body2">
@@ -312,55 +314,69 @@ const OrderDetail: React.FC = () => {
                       </Select>
                     </FormControl>
                     {idx === 0 && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleSaveStatus(statusSelect)}
-                        disabled={savingField === 'status'}
-                        sx={{
-                          minWidth: 72,
-                          height: 40,
-                          transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-                          ...(savedField === 'status'
+                      <>
+                        <span
+                          style={{ display: 'inline-block' }}
+                          {...(disableStatusSaveForMissingTracking
                             ? {
-                                backgroundColor: theme.palette.secondary.main,
-                                color: '#fff',
-                                borderColor: theme.palette.secondary.main,
-                                '&:hover': {
-                                  backgroundColor: theme.palette.secondary.main,
-                                  color: '#fff',
-                                  borderColor: theme.palette.secondary.main,
-                                },
+                                'data-tooltip-id': statusSaveTooltipId,
+                                'data-tooltip-content': 'Save a tracking URL first.',
+                                'data-tooltip-place': 'bottom',
                               }
-                            : {}),
-                        }}
-                      >
-                        <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
-                          <Box
-                            component="span"
+                            : {})}
+                        >
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleSaveStatus(statusSelect)}
+                            disabled={savingField === 'status' || disableStatusSaveForMissingTracking}
                             sx={{
-                              position: 'absolute',
-                              opacity: savedField === 'status' ? 0 : 1,
-                              transition: 'opacity 0.25s ease',
-                              pointerEvents: 'none',
+                              minWidth: 72,
+                              height: 40,
+                              transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
+                              ...(savedField === 'status'
+                                ? {
+                                    backgroundColor: theme.palette.secondary.main,
+                                    color: '#fff',
+                                    borderColor: theme.palette.secondary.main,
+                                    '&:hover': {
+                                      backgroundColor: theme.palette.secondary.main,
+                                      color: '#fff',
+                                      borderColor: theme.palette.secondary.main,
+                                    },
+                                  }
+                                : {}),
                             }}
                           >
-                            Save
-                          </Box>
-                          <Box
-                            component="span"
-                            sx={{
-                              position: 'absolute',
-                              opacity: savedField === 'status' ? 1 : 0,
-                              transition: 'opacity 0.25s ease',
-                              display: 'inline-flex',
-                              pointerEvents: 'none',
-                            }}
-                          >
-                            <CheckIcon sx={{ fontSize: 20 }} />
-                          </Box>
-                        </Box>
-                      </Button>
+                            <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 24 }}>
+                              <Box
+                                component="span"
+                                sx={{
+                                  position: 'absolute',
+                                  opacity: savedField === 'status' ? 0 : 1,
+                                  transition: 'opacity 0.25s ease',
+                                  pointerEvents: 'none',
+                                }}
+                              >
+                                Save
+                              </Box>
+                              <Box
+                                component="span"
+                                sx={{
+                                  position: 'absolute',
+                                  opacity: savedField === 'status' ? 1 : 0,
+                                  transition: 'opacity 0.25s ease',
+                                  display: 'inline-flex',
+                                  pointerEvents: 'none',
+                                }}
+                              >
+                                <CheckIcon sx={{ fontSize: 20 }} />
+                              </Box>
+                            </Box>
+                          </Button>
+                        </span>
+                        <Tooltip id={statusSaveTooltipId} style={{ padding: '2px 4px', fontSize: '0.75rem' }} />
+                      </>
                     )}
                   </Box>
                 ) : (
