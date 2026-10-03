@@ -52,10 +52,3 @@ export const colors = {
     info: '#6B5B4A',      // Using secondary text for info
   },
 } as const;
-
-// Export individual colors for easy access
-export const BACKGROUND_COLOR = colors.background.default;
-export const BASE2_COLOR = colors.background.base2;
-export const PRIMARY_COLOR = colors.primary.main;
-export const SECONDARY_COLOR = colors.secondary.main;
-export const ACCENT_COLOR = colors.accent.main;
